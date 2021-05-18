@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 
 started = False
 news_content = []
-api_key = "1719127362:AAEmDqPFza4SGdW5dF6W2sJC6bxiKAV-ebI"
-chat_id = 653734838
+api_key = "key"
+chat_id = 1
 
 def send_message(message):
     requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage?chat_id={chat_id}&text={message}')
