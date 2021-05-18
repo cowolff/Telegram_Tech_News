@@ -16,6 +16,7 @@ started = False
 news_content = []
 api_key = "key"
 chat_id = 1
+refresh = 15 # refresh interval in minutes
 
 def send_message(message):
     requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage?chat_id={chat_id}&text={message}')
@@ -45,9 +46,8 @@ while True:
                 if entry not in news_content:
                     news_content.append(entry)
                     if (len(tag_matches) > 0 or target[1][0] == ''):
-                        print("TEST")
+                        print(entry.title)
                         send_message(entry.title + "\n\n" + entry.summary)
-                        break
         started = True
-        print("Checked", len(news_content))
-        time.sleep(10)
+        print("Checked", now)
+        time.sleep(refresh * 60)
