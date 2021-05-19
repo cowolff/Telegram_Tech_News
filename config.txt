@@ -1,2 +1,2 @@
-Link: https://www.medion.com/de/presse/atom-feed.xml Tags: ()
-Link: https://news.samsung.com/global/feed Tags: ()
+Link: https://www.medion.com/de/presse/atom-feed.xml Tags: (Medion, Laptop) Keywords: ()
+Link: https://news.samsung.com/global/feed Tags: () Keywords: (Samsung, News)
