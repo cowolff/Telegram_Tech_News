@@ -41,9 +41,9 @@ def determine_send(link, entry):
         return True
 
     if hasattr(entry, 'tags') and link[1][0] != '':
-        tag_matches = [i for i in link[1] if i in [x.term for x in entry.tags]]
+        tag_matches = [i for i in link[1] if str(i).lower() in [str(x.term).lower() for x in entry.tags]]
     if link[2][0] != '':
-        keyword_matches = [i for i in link[2] if i in str(entry.title)]
+        keyword_matches = [i for i in link[2] if str(i).lower() in str(entry.title).lower()]
 
     if len(keyword_matches) > 0 and link[1][0] == '':
         return True
