@@ -4,6 +4,8 @@ import datetime
 import re
 import logging
 import requests
+from Database import Data
+from Update import get_update
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -12,13 +14,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-started = False
-news_content = []
-api_key = "key"
-chat_id = 1
+api_key = ""
 refresh = 15 # refresh interval in minutes
 
-def send_message(message):
+def send_message(message, chat_id):
     requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage?chat_id={chat_id}&text={message}')
 
 def get_config():
@@ -41,9 +40,9 @@ def determine_send(link, entry):
         return True
 
     if hasattr(entry, 'tags') and link[1][0] != '':
-        tag_matches = [i for i in link[1] if str(i).lower() in [str(x.term).lower() for x in entry.tags]]
+        tag_matches = [i for i in link[1] if i in [x.term for x in entry.tags]]
     if link[2][0] != '':
-        keyword_matches = [i for i in link[2] if str(i).lower() in str(entry.title).lower()]
+        keyword_matches = [i for i in link[2] if i in str(entry.title)]
 
     if len(keyword_matches) > 0 and link[1][0] == '':
         return True
@@ -56,9 +55,20 @@ def determine_send(link, entry):
 
     return False
 
+def process_news(news_links, data):
+    news_content = data.get_rss_news()
+    for link in news_links:
+        NewsFeed = feedparser.parse(link[0])
+        for entry in NewsFeed.entries:
+            if str(entry.title).replace("'", "") not in news_content:
+                data.add_rss_news(str(entry.title).replace("'", ""))
+                if determine_send(link, entry):
+                    print(entry.title)
+                    for chat_id in data.get_chats():
+                        send_message(entry.title + "\n\n" + entry.summary + "\n\n" + str(entry.link), chat_id)
 
 if __name__=="__main__":
-    started = False
+    data = Data()
     while True:
         news_links = []
         try:
@@ -67,16 +77,7 @@ if __name__=="__main__":
             print(e)
         now = datetime.datetime.now()
         if now.hour > 7 and now.hour < 22:
-            for link in news_links:
-                NewsFeed = feedparser.parse(link[0])
-                for entry in NewsFeed.entries:
-                    tag_matches = []
-                    if entry not in news_content:
-                        news_content.append(entry)
-                        if started and determine_send(link, entry):
-                            print(entry.title)
-                            send_message(entry.title + "\n\n" + entry.summary)
-                            
-            started = True
+            get_update(data, api_key)
+            process_news(news_links, data)
             print("Checked", now)
         time.sleep(refresh * 60)
