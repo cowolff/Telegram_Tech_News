@@ -15,3 +15,6 @@ def get_update(database: Data, api_key: str):
         database.remove_chats(remove_chats)
     except Exception as e:
         print(e)
+
+def send_message(message, chat_id, api_key):
+    requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage?chat_id={chat_id}&text={message}')

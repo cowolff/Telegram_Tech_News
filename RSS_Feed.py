@@ -5,7 +5,7 @@ import re
 import logging
 import requests
 from Database import Data
-from Update import get_update
+from Update import get_update, send_message
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -16,9 +16,6 @@ logger = logging.getLogger(__name__)
 
 api_key = ""
 refresh = 15 # refresh interval in minutes
-
-def send_message(message, chat_id):
-    requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage?chat_id={chat_id}&text={message}')
 
 def get_config():
     with open("config.txt", "r") as conf:
@@ -65,7 +62,7 @@ def process_news(news_links, data):
                 if determine_send(link, entry):
                     print(entry.title)
                     for chat_id in data.get_chats():
-                        send_message(entry.title + "\n\n" + entry.summary + "\n\n" + str(entry.link), chat_id)
+                        send_message(entry.title + "\n\n" + entry.summary + "\n\n" + str(entry.link), chat_id, api_key)
 
 if __name__=="__main__":
     data = Data()
