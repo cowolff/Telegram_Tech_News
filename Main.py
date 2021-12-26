@@ -3,7 +3,7 @@ from Update import get_update, send_message
 from Amazon import start
 from threading import Thread
 data = Data()
-api = "1719127362:AAHSCLN1M5BoGg3pt3AUYz0MH7W8uPvIcfY"
+api = ""
 chat_ids = ["653734838"]
 
 x = Thread(target=start, args=(api, chat_ids), daemon=True)
