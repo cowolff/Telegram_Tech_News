@@ -3,7 +3,7 @@ import requests
 from Database import Data
 
 def get_update(database: Data, api_key: str):
-    chats = data.get_chats()
+    chats = database.get_chats()
 
     json = requests.post(f'https://api.telegram.org/bot{api_key}/getUpdates').json()
     try:
