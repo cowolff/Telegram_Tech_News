@@ -25,18 +25,34 @@ class Data:
                     FOREIGN KEY(asin) REFERENCES Amazon_Product(asin))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Amazon_Watchlist
                     (asin TEXT, PRIMARY KEY(asin))''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS Issues(id INT, process TEXT, description TEXT, file TEXT, line TEXT, timestamp TEXT, severity INT, done TEXT, PRIMARY KEY(id))''')
         self.con.commit()
         cur.close()
         self.__initUser()
+        self.__initIssueId()
 
     def __initUser(self):
         cur = self.con.cursor()
-        cur.execute('SELECT COUNT() FROM Users')
+        cur.execute('SELECT COUNT(*) FROM Users')
         result = cur.fetchone()[0]
         if result == 0:
             cur.execute("INSERT INTO Users VALUES('cowolff','1234567')")
             self.con.commit()
         cur.close()
+
+    def __initIssueId(self):
+        cur = self.con.cursor()
+        cur.execute('SELECT COUNT(*) FROM Issues')
+        result = cur.fetchone()[0]
+        cur.close()
+        if result != 0:
+            cur = self.con.cursor()
+            cur.execute('SELECT MAX(id) FROM Issues')
+            self.id = cur.fetchone()[0]
+            cur.close()
+        else:
+            self.id = 0
+
 
     def create_user(self, username, password):
         cur = self.con.cursor()
@@ -242,3 +258,18 @@ class Data:
             dic = {"name":product[0], "asin":product[1], "lastUpdate":date, "price":price, "change":change}
             overview.append(dic)
         return overview
+
+    def add_Issue(self, process, description, file, line, severity):
+        timestamp = str(time.time())
+        done = "False"
+        cur = self.con.cursor()
+        self.id = self.id + 1
+        cur.execute("INSERT INTO Issues VALUES(%s, %s, %s, %s, %s, %s, %s, %s)" % (self.id, process, description, file, line, timestamp, severity, done))
+        self.con.commit()
+        cur.close()
+
+    def done_Issue(self, update_id, done):
+        cur = self.con.cursor()
+        cur.execute("UPDATE Issues SET done='%s' WHERE id='%s';" % (update_id, done))
+        self.con.commit()
+        cur.close()
