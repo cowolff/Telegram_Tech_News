@@ -11,57 +11,89 @@ from Update import send_message
 # Google "My User Agent" And Replace It
 
 headers = {"User-Agent": 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0'} 
+process = "Amazon Crawler"
+file = "Amazon.py"
 
-#Checking the price
-def check_single_price(ASIN):
-    URL = "https://www.amazon.de/dp/" + ASIN + "/"
-    page = requests.get(URL, headers=headers)
-    soup  = BeautifulSoup(page.content, 'html.parser')
-
-    #Finding the elements
-    product_title = soup.find(id='productTitle').text
-
-    if soup.find(id='corePrice_desktop') is not None:
-        try:
-            product_price = soup.find(id='corePrice_desktop')
-            product_price = product_price.findAll("span", {"class", "a-price a-text-price a-size-medium apexPriceToPay"})[0]
-            product_price = product_price.findAll("span", {"class", "a-offscreen"})[0].text
-        except IndexError:
-            pass
-    elif len(soup.findAll("span", {"class":"a-price-whole"})) != 0:
-        try:
-            product_price = soup.findAll("span", {"class":"a-price-whole"})[0].text
-            product_price = product_price + soup.findAll("span", {"class":"a-price-fraction"})[0].text + "€"
-        except IndexError:
-            pass
-    else:
-        print("Couldn't get price at " + ASIN)
-        product_price = -1
-    dic = {"asin":ASIN, "title":product_title.replace("  ", ""), "price":product_price}
+def __check_single_price_error(asin, error, lines, data):
+    description = str(error)
+    line = lines
+    severity = 3
+    price = data.get_last_price()[0]
+    data.add_Issue(process, description, file, line, severity)
+    dic = {"asin":asin, "title":"null", "price":str(price)}
     return dic
 
-def check_search(TERM):
-    TERM = TERM.replace(" ", "+")
-    URL = "https://www.amazon.de/s?k=" + TERM
+def __check_search_error(term, error, lines, data):
+    description = str(error)
+    line = lines
+    severity = 3
+    price = data.get_last_price()[0]
+    data.add_Issue(process, description, file, line, severity)
 
-    page = requests.get(URL, headers=headers)
-    soup = BeautifulSoup(page.content, 'html.parser')
+#Checking the price
+def check_single_price(ASIN, data):
+    try:
+        URL = "https://www.amazon.de/dp/" + ASIN + "/"
+        page = requests.get(URL, headers=headers)
+        soup  = BeautifulSoup(page.content, 'html.parser')
 
-    product_list = soup.findAll("div", {"class":"s-main-slot s-result-list s-search-results sg-row"})[0]
-    product_list = product_list.findAll("div", {"class":"s-result-item s-asin sg-col-0-of-12 sg-col-16-of-20 sg-col s-widget-spacing-small sg-col-12-of-16"})
+        #Finding the elements
+        product_title = soup.find(id='productTitle').text
 
+        if soup.find(id='corePrice_desktop') is not None:
+            try:
+                product_price = soup.find(id='corePrice_desktop')
+                product_price = product_price.findAll("span", {"class", "a-price a-text-price a-size-medium apexPriceToPay"})[0]
+                product_price = product_price.findAll("span", {"class", "a-offscreen"})[0].text
+            except IndexError:
+                return __check_single_price_error(ASIN, "IndexError", "39-41", data)
+
+        elif len(soup.findAll("span", {"class":"a-price-whole"})) != 0:
+            try:
+                product_price = soup.findAll("span", {"class":"a-price-whole"})[0].text
+                product_price = product_price + soup.findAll("span", {"class":"a-price-fraction"})[0].text + "€"
+            except IndexError:
+                return __check_single_price_error(ASIN, "IndexError", "46-47", data)
+
+        else:
+            print("Couldn't get price at " + ASIN)
+            product_price = -1
+        dic = {"asin":ASIN, "title":product_title.replace("  ", ""), "price":product_price}
+        return dic
+        
+    except Exception as e:
+        return __check_single_price_error(ASIN, e, "29-54", data)
+        
+
+def check_search(TERM, data):
     products = []
+    try:
+        TERM = TERM.replace(" ", "+")
+        URL = "https://www.amazon.de/s?k=" + TERM
 
-    for product in product_list:
-        asin = product["data-asin"]
-        title = product.findAll("h2", {"class":"a-size-mini a-spacing-none a-color-base s-line-clamp-2"})[0].text
-        try:
-            price = str(product.findAll("span", {"class":"a-price-whole"})[0].text) + "€"
-        except IndexError:
-            price = -1
-        dic = {"asin":asin, "title": title, "price": price}
-        products.append(dic)
-    return products
+        page = requests.get(URL, headers=headers)
+        soup = BeautifulSoup(page.content, 'html.parser')
+
+        product_list = soup.findAll("div", {"class":"s-main-slot s-result-list s-search-results sg-row"})[0]
+        product_list = product_list.findAll("div", {"class":"s-result-item s-asin sg-col-0-of-12 sg-col-16-of-20 sg-col s-widget-spacing-small sg-col-12-of-16"})
+
+        for product in product_list:
+            try:
+                asin = product["data-asin"]
+                title = product.findAll("h2", {"class":"a-size-mini a-spacing-none a-color-base s-line-clamp-2"})[0].text
+                try:
+                    price = str(product.findAll("span", {"class":"a-price-whole"})[0].text) + "€"
+                except IndexError:
+                    __check_search_error(TERM, "Index Error", "85", data)
+                    price = -1
+                dic = {"asin":asin, "title": title, "price": price}
+                products.append(dic)
+            except Exception as e:
+                __check_search_error(TERM, e, "82-90", data)
+        return products
+    except Exception as e:
+        __check_search_error(TERM, e, "70-93", data)
+        return products
 
 def amazon_thread(data, check_time):
     minute = random.randint(0,60)
@@ -79,7 +111,7 @@ def start(api_key, chat_ids):
     for term in search_terms:
         time.sleep(random.uniform(0,30))
         timestamp = time.time()
-        products = check_search(term)
+        products = check_search(term, data)
         for product in products:
             asins.append(product["asin"])
             if not data.product_exists(product["asin"]):
@@ -99,7 +131,7 @@ def start(api_key, chat_ids):
     print(watchlist)
     for element in watchlist:
         timetamp = time.time()
-        result = check_single_price(element[0])
+        result = check_single_price(element[0], data)
         data.add_amazon_price(result["asin"], result["price"], timetamp)
         if(data.check_drop(result["asin"], 0.1)):
             for chat in chat_ids:
