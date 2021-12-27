@@ -67,17 +67,17 @@ def getHome():
 def getIssueList():
     ips = [x["ip"] for x in sessions]
     if request.remote_addr in ips:
+        # issues = [{"process":"Amazon", "problem":"Exception during crawl at product TRDJEM", "time":"12.12.2021 18:01", "file":"Amazon.py", "line":"12-17", "severity":3}, {"process":"Telegram", "problem":"Exception during sending in chat 12", "time":"12.12.2021 15:01", "file":"Telegram.py", "line":"10-19", "severity":2}]
+        data = Data()
+        issues = data.get_Issues()
         name = sessions[ips.index(request.remote_addr)]["username"]
         if request.method == 'GET':
-            issues = [{"process":"Amazon", "problem":"Exception during crawl at product TRDJEM", "time":"12.12.2021 18:01", "file":"Amazon.py", "line":"12-17", "severity":3}, {"process":"Telegram", "problem":"Exception during sending in chat 12", "time":"12.12.2021 15:01", "file":"Telegram.py", "line":"10-19", "severity":2}]
             return render_template("issues.html", issues=issues, name=name)
         elif request.method == "POST":
             if request.form.get('Solved-Button') == 'Solved':
                 # data.solvedIssue()
-                issues = [{"process":"Amazon", "problem":"Exception during crawl at product TRDJEM", "time":"12.12.2021 18:01", "file":"Amazon.py", "line":"12-17", "severity":3}, {"process":"Telegram", "problem":"Exception during sending in chat 12", "time":"12.12.2021 15:01", "file":"Telegram.py", "line":"10-19", "severity":2}]
                 return render_template("issues.html", issues=issues, name=name)
             if request.form.get('Reload-Button') == 'Reload':
-                issues = [{"process":"Amazon", "problem":"Exception during crawl at product TRDJEM", "time":"12.12.2021 18:01", "file":"Amazon.py", "line":"12-17", "severity":3}, {"process":"Telegram", "problem":"Exception during sending in chat 12", "time":"12.12.2021 15:01", "file":"Telegram.py", "line":"10-19", "severity":2}]
                 return render_template('issues.html', issues=issues, name=name)
     else:
         return redirect(url_for('getLogin'))
@@ -123,11 +123,20 @@ def getAmazonTermList():
     ips = [x["ip"] for x in sessions]
     if request.remote_addr in ips:
         name = sessions[ips.index(request.remote_addr)]["username"]
+
         terms = [{"term":"Samsung Galaxy", "numberProducts":12, "singleProducts":5, "lastUpdate":"14.12.2021"}, {"term":"Huawei", "numberProducts":12, "singleProducts":3, "lastUpdate":"14.12.2021"}]
+        data = Data()
         if request.method == 'GET':
+            terms = data.get_Term_Overview()
             return render_template('amazon-terms-overview.html', terms=terms, name=name)
         if request.method == 'POST':
             if request.form.get('TermAddButton') == "Add":
+                term =  request.form['newTerm']
+                data.add_amazon_search_term(term)
+                terms = data.get_Term_Overview()
+                return render_template('amazon-terms-overview.html', terms=terms, name=name)
+            else:
+                terms = data.get_Term_Overview()
                 return render_template('amazon-terms-overview.html', terms=terms, name=name)
     else:
         return redirect(url_for('getLogin'))
@@ -149,4 +158,4 @@ def getRSSOverview():
         return redirect(url_for('getLogin'))
 
 x = threading.Thread(target=start, args=(api, chat_ids), daemon=True)
-#x.start()
+x.start()

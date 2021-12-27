@@ -124,8 +124,10 @@ class Data:
     def product_exists(self, asin):
         cur = self.con.cursor()
         try:
-            cur.execute("SELECT Count() FROM Amazon_Product WHERE asin='%s'" % (asin))
+            cur.execute("SELECT Count(*) FROM Amazon_Product WHERE asin='%s'" % (asin))
             n = cur.fetchone()[0]
+            if n == 0:
+                return False
             return True
         except sqlite3.OperationalError as e:
             return False
@@ -150,8 +152,12 @@ class Data:
         cur.close()
         return prices
     
-    def get_last_price(self, title, country):
-        return self.get_prices(title, country)[0]
+    def get_last_price(self, asin):
+        prices = self.get_prices(asin)
+        if len(prices) == 0:
+            return 0
+        else:
+            return prices[0][0]
 
     def get_all_products(self):
         cur = self.con.cursor()
@@ -171,6 +177,7 @@ class Data:
         cur = self.con.cursor()
         cur.execute("SELECT * FROM Amazon_Watchlist")
         asins = cur.fetchall()
+        asins = [x[0] for x in asins]
         cur.close()
         return asins
 
@@ -185,7 +192,7 @@ class Data:
 
     def check_drop(self, asin, threshold):
         prices = self.get_prices(asin)
-        if(len(prices) > 1):
+        if(len(prices) > 1 and prices[0][0] != "-1,0€" and prices[0][1] != "-1,0€"):
             first = prices[0][0].split(",")[0]
             second = prices[1][0].split(",")[0]
             if((float(first) / float(second)) < (1 - threshold)):
@@ -264,7 +271,7 @@ class Data:
         done = "False"
         cur = self.con.cursor()
         self.id = self.id + 1
-        cur.execute("INSERT INTO Issues VALUES(%s, %s, %s, %s, %s, %s, %s, %s)" % (self.id, process, description, file, line, timestamp, severity, done))
+        cur.execute("INSERT INTO Issues VALUES(%s, '%s', '%s', '%s', '%s', '%s', %s, '%s')" % (self.id, process, description, file, line, timestamp, severity, done))
         self.con.commit()
         cur.close()
 
@@ -273,3 +280,44 @@ class Data:
         cur.execute("UPDATE Issues SET done='%s' WHERE id='%s';" % (update_id, done))
         self.con.commit()
         cur.close()
+
+    def get_Issues(self):
+        cur = self.con.cursor()
+        cur.execute("SELECT * FROM Issues;")
+        issues = cur.fetchall()
+        dict = []
+        for issue in issues:
+            date = datetime.fromtimestamp(float(issue[5])).strftime("%d/%m/%Y, %H:%M:%S")
+            dic = {"id":issue[0], "process":issue[1], "description":issue[2], "file":issue[3], "line":issue[4], "timestamp":date, "severity":issue[6], "done":issue[7]}
+            dict.append(dic)
+        return dict
+
+    def get_Term_Overview(self):
+        cur = self.con.cursor()
+        asins = self.get_watchlist()
+        overview = []
+        cur.execute("SELECT * FROM Amazon_Search_Term")
+        terms = cur.fetchall()
+        cur.close()
+        terms = [term[0] for term in terms]
+        for term in terms:
+            try:
+                cur = self.con.cursor()
+                cur.execute("SELECT timestamp FROM Amazon_Search_Instance WHERE term='%s'" % (term))
+                timestamp = cur.fetchone()[0]
+                date = datetime.fromtimestamp(float(timestamp)).strftime("%d/%m/%Y, %H:%M:%S")
+                cur.close()
+                cur = self.con.cursor()
+                cur.execute("SELECT * FROM Amazon_Search_result WHERE term='%s' AND timestamp='%s'" % (term, timestamp))
+                results = cur.fetchall()
+                numberOfProducts = len(results)
+                trackedAsins = [x[2] for x in results]
+                numberOfTrackedProducts = len([x for x in trackedAsins if x in asins])
+                cur.close()
+                dic = {"term":term, "numberProducts":str(numberOfProducts), "singleProducts":str(numberOfTrackedProducts), "lastUpdate":date}
+                overview.append(dic)
+            except Exception as e:
+                print(e)
+                dic = {"term":term, "numberProducts":"-1", "singleProducts":"-1", "lastUpdate":"0.0.0000 00:00:00"}
+                overview.append(dic)
+        return overview

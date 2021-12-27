@@ -18,17 +18,18 @@ def __check_single_price_error(asin, error, lines, data):
     description = str(error)
     line = lines
     severity = 3
-    price = data.get_last_price()[0]
+    price = data.get_last_price(asin)
     data.add_Issue(process, description, file, line, severity)
     dic = {"asin":asin, "title":"null", "price":str(price)}
+    print("Error in check_single_price: " + str(error))
     return dic
 
 def __check_search_error(term, error, lines, data):
     description = str(error)
     line = lines
     severity = 3
-    price = data.get_last_price()[0]
     data.add_Issue(process, description, file, line, severity)
+    print("Error in check_search: " + str(error))
 
 #Checking the price
 def check_single_price(ASIN, data):
@@ -46,14 +47,16 @@ def check_single_price(ASIN, data):
                 product_price = product_price.findAll("span", {"class", "a-price a-text-price a-size-medium apexPriceToPay"})[0]
                 product_price = product_price.findAll("span", {"class", "a-offscreen"})[0].text
             except IndexError:
-                return __check_single_price_error(ASIN, "IndexError", "39-41", data)
+                print("couldn't find price for " + URL)
+                product_price = "-1,0€"
 
         elif len(soup.findAll("span", {"class":"a-price-whole"})) != 0:
             try:
                 product_price = soup.findAll("span", {"class":"a-price-whole"})[0].text
                 product_price = product_price + soup.findAll("span", {"class":"a-price-fraction"})[0].text + "€"
             except IndexError:
-                return __check_single_price_error(ASIN, "IndexError", "46-47", data)
+                print("couldn't find price for " + URL)
+                product_price = "-1,0€"
 
         else:
             print("Couldn't get price at " + ASIN)
@@ -84,8 +87,8 @@ def check_search(TERM, data):
                 try:
                     price = str(product.findAll("span", {"class":"a-price-whole"})[0].text) + "€"
                 except IndexError:
-                    __check_search_error(TERM, "Index Error", "85", data)
-                    price = -1
+                    print("couldn't find price for https://www.amazon.de/dp/" + asin)
+                    price = "-1,0€"
                 dic = {"asin":asin, "title": title, "price": price}
                 products.append(dic)
             except Exception as e:
@@ -105,8 +108,8 @@ def start(api_key, chat_ids):
     data = Data()
     
     print("Start searching")
-    # search_term = data.get_amazon_search_terms()
-    search_terms = ["Galaxy A","8 GB RAM"]
+    search_terms = data.get_amazon_search_terms()
+    # search_terms = ["Galaxy S","8 GB RAM"]
     asins = []
     for term in search_terms:
         time.sleep(random.uniform(0,30))

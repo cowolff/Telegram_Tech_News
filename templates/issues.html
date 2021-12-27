@@ -161,6 +161,7 @@
                                             <th>File</th>
                                             <th>Line</th>
                                             <th>Severity</th>
+                                            <th>Status</th>
                                             <th>Solved</th>
                                         </tr>
                                     </thead>
@@ -172,6 +173,7 @@
                                             <th>File</th>
                                             <th>Line</th>
                                             <th>Severity</th>
+                                            <th>Status</th>
                                             <th>Solved</th>
                                         </tr>
                                     </tfoot>
@@ -179,11 +181,12 @@
                                         {% for issue in issues %}
                                         <tr>
                                             <td>{{ issue.process }}</td>
-                                            <td>{{ issue.problem }}</td>
-                                            <td>{{ issue.time }}</td>
+                                            <td>{{ issue.description }}</td>
+                                            <td>{{ issue.timestamp }}</td>
                                             <td>{{ issue.file }}</td>
                                             <td>{{ issue.line }}</td>
                                             <td>{{ issue.severity }}</td>
+                                            <td>{{ issue.done }}</td>
                                             <td><input class="btn btn-primary" type="submit" value="Solved"
                                                     name="Solved-Button"></td>
                                         </tr>
@@ -213,8 +216,6 @@
         crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
-    <script src="{{ url_for('static', filename='assets/demo/chart-area-demo.js') }}"></script>
-    <script src="{{ url_for('static', filename='assets/demo/chart-bar-demo.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/datatables-simple-demo.js') }}"></script>
 </body>
