@@ -181,6 +181,27 @@ class Data:
         cur.close()
         return asins
 
+    def add_amazon_watchlist(self, asin):
+        try:
+            cur = self.con.cursor()
+            cur.execute("INSERT INTO Amazon_Watchlist VALUES('%s');" % asin)
+            cur.close()
+            return True
+        except sqlite3.IntegrityError:
+            cur.close()
+            return False
+
+    def remove_amazon_watchlist(self, asin):
+        try:
+            cur = self.con.cursor()
+            cur.execute("DELETE FROM Amazon_Watchlist WHERE asin = '%s';" % asin)
+            cur.close()
+            return True
+        except sqlite3.error:
+            cur.close()
+            return False
+
+
     def get_product(self, asin):
         cur = self.con.cursor()
         cur.execute("""SELECT * FROM Amazon_Product WHERE asin="%s";""" % asin)

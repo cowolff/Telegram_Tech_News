@@ -8,7 +8,8 @@ from flask import Flask, render_template, redirect, url_for, request
 from Database import Data
 from Update import send_message
 import threading
-from Amazon import start
+from Amazon import start, check_single_price
+import time
 
 
 api = ""  # The API-Key for the Telegram Bot
@@ -108,6 +109,15 @@ def getAmazonProductList():
             return render_template("amazon-products-overview.html", products=products, name=name)
         if request.method == 'POST':
             if request.form.get('AsinAddButton') == "Add":
+                asin = request.form['asinTextInput']
+                print("Term:" + asin)
+                term = request.form['asinNameInput']
+                if term == "":
+                    product = check_single_price(asin, data)
+                    term = product["title"]
+                    data.add_amazon_price(asin, product["price"], time.time())
+                data.add_amazon_product(term, asin)
+                data.add_amazon_watchlist(asin)
                 products = data.get_overview_products()
                 return render_template("amazon-products-overview.html", products=products, name=name)
             if request.form.get('Reload-Button') == "Reload":
@@ -158,4 +168,4 @@ def getRSSOverview():
         return redirect(url_for('getLogin'))
 
 x = threading.Thread(target=start, args=(api, chat_ids), daemon=True)
-x.start()
+#x.start()

@@ -157,11 +157,11 @@
                                         <form>
                                             <div class="row">
                                                 <div class="col">
-                                                    <input type="text" id="asinText" class="form-control" placeholder="asin">
+                                                    <input type="text" id="asinText" class="form-control" name="asinTextInput" placeholder="asin">
                                                     <label for="TermAdd">ASIN</label>
                                                 </div>
                                                 <div class="col">
-                                                    <input type="text" id="asinName" class="form-control" placeholder="Optional">
+                                                    <input type="text" id="asinName" class="form-control" name="asinNameInput" placeholder="Optional">
                                                     <label for="TermAdd">Name</label>
                                                 </div>
                                                 <div class="col">
@@ -179,6 +179,7 @@
                                             <th>Current Price</th>
                                             <th>Last Update</th>
                                             <th>Change</th>
+                                            <th>Status</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -188,6 +189,7 @@
                                             <th>Current Price</th>
                                             <th>Last Update</th>
                                             <th>Change</th>
+                                            <th>Status</th>
                                         </tr>
                                     </tfoot>
                                     <tbody>
@@ -198,6 +200,8 @@
                                             <td>{{ product.price }}</td>
                                             <td>{{ product.lastUpdate }}</td>
                                             <td>{{ product.change }}</td>
+                                            <td><input class="btn btn-primary" type="submit" value={{ product.asin }}
+                                                name="Track-Button"></td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
