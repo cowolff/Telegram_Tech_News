@@ -4,7 +4,6 @@ import os
 import time
 import json
 import random
-import schedule
 from Database import Data
 from Update import send_message
 
