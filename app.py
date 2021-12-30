@@ -10,7 +10,7 @@ from Update import send_message
 import threading
 from Amazon import start, check_single_price
 import time
-
+from ProcessManager import ProcessManager
 
 api = ""  # The API-Key for the Telegram Bot
 chat_ids = ["653734838"]    # List of chat ids which want to be updated
@@ -167,5 +167,7 @@ def getRSSOverview():
     else:
         return redirect(url_for('getLogin'))
 
-x = threading.Thread(target=start, args=(api, chat_ids), daemon=True)
+#x = threading.Thread(target=start, args=(api, chat_ids), daemon=True)
 #x.start()
+
+processManager = ProcessManager(api, chat_ids)
