@@ -31,10 +31,11 @@ class ProcessManager():
             minute = random.randrange(0, 59)
             second = random.randrange(0, 59)
             x=datetime.today()
-            y = x.replace(day=x.day, hour=8, minute=0, second=second, microsecond=0) + timedelta(minute=1)
+            y = x.replace(day=x.day, hour=x.hour, minute=x.minute, second=second, microsecond=0) + timedelta(minute=1)
             delta_t=y-x
             secs=delta_t.total_seconds()
-            t = threading.Timer(secs, start)
+            t = threading.Timer(secs, start, args=(self.api_key, self.chat_ids))
+            t.daemon = True
             t.start()
 
     def __rss_process(self):
