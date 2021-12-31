@@ -347,7 +347,7 @@ class Data:
     def add_RSS_Feed(self, link, name):
         cur = self.con.cursor()
         self.RSSid = self.RSSid + 1
-        cur.execute("INSERT INTO RSS_Feed VALUES('%s', '%s', '%s')", (link, name, self.RSSid))
+        cur.execute("INSERT INTO RSS_Feed VALUES('%s', '%s', %s)" % (link, name, self.RSSid))
         self.con.commit()
         cur.close()
 
@@ -361,19 +361,19 @@ class Data:
 
     def remove_RSS_Feed(self, link):
         cur = self.con.cursor()
-        cur.execute("DELETE FROM RSS_Feed WHERE link='%s';", link)
+        cur.execute("DELETE FROM RSS_Feed WHERE link='%s';" % link)
         self.con.commit()
         cur.close()
 
     def add_RSS_News(self, link, title, content, timestamp, relevance):
         cur = self.con.cursor()
-        cur.execute("INSERT INTO RSS_News VALUES('%s','%s','%s','%s', '%s');", (title, content, str(timestamp), link, relevance))
+        cur.execute("INSERT INTO RSS_News VALUES('%s','%s','%s','%s', %s);" % (title, content, str(timestamp), link, relevance))
         self.con.commit()
         cur.close()
 
     def get_RSS_News(self, link, name):
         cur = self.con.cursor()
-        cur.execute("SELECT * FROM RSS_News WHERE link='%s';", link)
+        cur.execute("SELECT * FROM RSS_News WHERE link='%s';" % link)
         news = cur.fetchall()
         news = [{"title":x[0], "content":[1], "timestamp":x[2], "name":name, "relevance":x[4]} for x in news]
         cur.close()
@@ -381,7 +381,7 @@ class Data:
 
     def get_RSS_Link_Title(self, id):
         cur = self.con.cursor()
-        cur.execute("SELECT link, title FROM RSS_Feed WHERE feedId=%s;", id)
+        cur.execute("SELECT link, title FROM RSS_Feed WHERE feedId=%s;" % id)
         data = cur.fetchone()
         cur.close()
         return data[0], data[1]
