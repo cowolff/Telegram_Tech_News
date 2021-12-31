@@ -347,7 +347,7 @@ class Data:
     def add_RSS_Feed(self, link, name):
         cur = self.con.cursor()
         self.RSSid = self.RSSid + 1
-        cur.execute("INSERT INTO RSS_Feed VALUES('%s', '%s', %s)", (link, name, self.RSSid))
+        cur.execute("INSERT INTO RSS_Feed VALUES('%s', '%s', '%s')", (link, name, self.RSSid))
         self.con.commit()
         cur.close()
 
@@ -367,7 +367,7 @@ class Data:
 
     def add_RSS_News(self, link, title, content, timestamp, relevance):
         cur = self.con.cursor()
-        cur.execute("INSERT INTO RSS_News VALUES('%s','%s','%s','%s', %s);", (title, content, str(timestamp), link, relevance))
+        cur.execute("INSERT INTO RSS_News VALUES('%s','%s','%s','%s', '%s');", (title, content, str(timestamp), link, relevance))
         self.con.commit()
         cur.close()
 
