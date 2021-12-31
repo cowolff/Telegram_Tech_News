@@ -157,16 +157,40 @@ def getAmazonTermList():
 def getRSSOverview():
     ips = [x["ip"] for x in sessions]
     if request.remote_addr in ips:
+        data = Data()
         name = sessions[ips.index(request.remote_addr)]["username"]
-        feeds = [{"name":"Winfuture", "numberNews":121, "numberRelevantNews":6, "numberRelevantNewsToday":2, "lastUpdate":"11.16.2021 8:21"}, {"name":"TheVerge", "numberNews":98, "numberRelevantNews":8, "numberRelevantNewsToday":2, "lastUpdate":"11.16.2021 8:25"}]
+        # feeds = [{"name":"Winfuture", "numberNews":121, "numberRelevantNews":6, "numberRelevantNewsToday":2, "lastUpdate":"11.16.2021 8:21"}, {"name":"TheVerge", "numberNews":98, "numberRelevantNews":8, "numberRelevantNewsToday":2, "lastUpdate":"11.16.2021 8:25"}]
+        feeds = data.get_RSS_Feeds()
         if request.method == 'GET':
             return render_template('rss-overview.html', feeds=feeds, name=name)
         if request.method == 'POST':
             if request.form.get('RSSAdd') == "Add":
+                link = request.form['linkRSSField']
+                title = request.form['nameRSSField']
+                if(title == "" or link == ""):
+                    return render_template('rss-overview.html', feeds=feeds, name=name)
+                data.add_RSS_Feed(link, title)
                 return render_template('rss-overview.html', feeds=feeds, name=name)
+            elif request.form.get('SpecificRSSButton'):
+                return redirect(url_for('getRSSspecific', feedId=request.form.get('SpecificRSSButton')))
     else:
         return redirect(url_for('getLogin'))
 
+@app.route('/rss/<feedId>', methods=['GET', 'POST'])
+def getRSSspecific(feedId):
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        data = Data()
+        name = sessions[ips.index(request.remote_addr)]["username"]
+
+        if request.method == 'GET':
+            link, title = data.get_RSS_Link_Title(feedId)
+            newsfeed = data.get_RSS_News(link)
+            return render_template('rss-specific.html', newsfeed=newsfeed, name=name, title=title, link=link)
+        if request.method == 'POST':
+            link, title = data.get_RSS_Link_Title(feedId)
+            newsfeed = data.get_RSS_News(link)
+            return render_template('rss-specific.html', newsfeed=newsfeed, name=name, title=title, link=link)
 #x = threading.Thread(target=start, args=(api, chat_ids), daemon=True)
 #x.start()
 
