@@ -390,7 +390,7 @@ class Data:
         overview = []
         feeds = self.get_RSS_Feeds()
         for feed in feeds:
-            news = self.get_RSS_News()
+            news = self.get_RSS_News(feed["link"], feed["title"])
             timestamp_today = time.time() - (24 * 60 * 60)
             number_relevant_news = len([x for x in news if news["relevance"]==1 and float(news["timestamp"]) > timestamp_today])
             number_relevant_news_total = len([x for x in news if news["relevance"]==1])
