@@ -31,6 +31,7 @@ class Data:
         cur.close()
         self.__initUser()
         self.__initIssueId()
+        self.__initRSSId()
 
     def __initUser(self):
         cur = self.con.cursor()
