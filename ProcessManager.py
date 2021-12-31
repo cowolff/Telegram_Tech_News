@@ -4,7 +4,7 @@ import multiprocessing
 from datetime import datetime, timedelta
 import threading
 from Update import send_message_to_chats
-from Amazon import start
+from Amazon import amazon_process
 import random
 
 class ProcessManager():
@@ -17,26 +17,16 @@ class ProcessManager():
         self.__data = Data()
         self.chat_ids = chat_ids
         self.api_key = api
-        self.__amazonProcess = multiprocessing.Process(target=self.__amazon_process,daemon=True)
+        self.__amazonProcess = threading.Thread(target=amazon_process, daemon=True, args=(self.api_key, self.chat_ids))
+
+        # self.__rssProcess = threading.Thread(target=__rss_process, daemon=True)
+        # self.__rssProcess.start()
+
+        self.x = threading.Thread(target=self.__checkStatus, daemon=True)
+
+    def start(self):
         self.__amazonProcess.start()
-
-        self.__rssProcess = multiprocessing.Process(target=self.__rss_process, daemon=True)
-        self.__rssProcess.start()
-
-        x = threading.Thread(target=self.__checkStatus, daemon=True)
-        x.start()
-
-    def __amazon_process(self):
-        while True:
-            minute = random.randrange(0, 59)
-            second = random.randrange(0, 59)
-            x=datetime.today()
-            y = x.replace(day=x.day, hour=x.hour, minute=x.minute, second=second, microsecond=0) + timedelta(minute=1)
-            delta_t=y-x
-            secs=delta_t.total_seconds()
-            t = threading.Timer(secs, start, args=(self.api_key, self.chat_ids))
-            t.daemon = True
-            t.start()
+        self.x.start()
 
     def __rss_process(self):
         pass
@@ -60,4 +50,4 @@ class ProcessManager():
         while True:
             time.sleep(30)
             self.check_process(self.__amazonProcess, self.amazon_crawler, current_incident_amazon, "Amazon Crawler")
-            self.check_process(self.__rssProcess, self.rss, current_incident_rss, "RSS Feed")
+            # self.check_process(self.__rssProcess, self.rss, current_incident_rss, "RSS Feed")
