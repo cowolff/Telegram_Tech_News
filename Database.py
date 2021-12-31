@@ -385,3 +385,20 @@ class Data:
         data = cur.fetchone()
         cur.close()
         return data[0], data[1]
+
+    def get_RSS_Overview(self):
+        overview = []
+        feeds = self.get_RSS_Feeds()
+        for feed in feeds:
+            news = self.get_RSS_News()
+            timestamp_today = time.time() - (24 * 60 * 60)
+            number_relevant_news = len([x for x in news if news["relevance"]==1 and float(news["timestamp"]) > timestamp_today])
+            number_relevant_news_total = len([x for x in news if news["relevance"]==1])
+            number_news_total = len(news)
+            try:
+                latest_update = max([float(x["timestamp"]) for x in news])
+                date = datetime.fromtimestamp(float(latest_update)).strftime("%d/%m/%Y, %H:%M:%S")
+            except:
+                date = "00.00.0000 00:00"
+            overview.append({"feedId":feed["feedId"], "name":feed["title"], "lastUpdate":date, "numberNews":number_news_total, "numberRelevantNews":number_relevant_news_total, "numberRelevantNewsToday":number_relevant_news})
+        return overview

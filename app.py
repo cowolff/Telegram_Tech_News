@@ -160,7 +160,7 @@ def getRSSOverview():
         data = Data()
         name = sessions[ips.index(request.remote_addr)]["username"]
         # feeds = [{"name":"Winfuture", "numberNews":121, "numberRelevantNews":6, "numberRelevantNewsToday":2, "lastUpdate":"11.16.2021 8:21"}, {"name":"TheVerge", "numberNews":98, "numberRelevantNews":8, "numberRelevantNewsToday":2, "lastUpdate":"11.16.2021 8:25"}]
-        feeds = data.get_RSS_Feeds()
+        feeds = data.get_RSS_Overview()
         if request.method == 'GET':
             return render_template('rss-overview.html', feeds=feeds, name=name)
         if request.method == 'POST':
@@ -170,6 +170,7 @@ def getRSSOverview():
                 if(title == "" or link == ""):
                     return render_template('rss-overview.html', feeds=feeds, name=name)
                 data.add_RSS_Feed(link, title)
+                feeds = data.get_RSS_Overview()
                 return render_template('rss-overview.html', feeds=feeds, name=name)
             elif request.form.get('SpecificRSSButton'):
                 return redirect(url_for('getRSSspecific', feedId=request.form.get('SpecificRSSButton')))
