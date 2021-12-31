@@ -159,11 +159,11 @@
                                         <form>
                                             <div class="row">
                                                 <div class="col">
-                                                    <input type="text" id="linkRSS" class="form-control" placeholder="http://rss.com/feed">
+                                                    <input type="text" id="linkRSS" class="form-control" name="linkRSSField" placeholder="http://rss.com/feed">
                                                     <label for="linkRSS">Link</label>
                                                 </div>
                                                 <div class="col">
-                                                    <input type="text" id="RSSName" class="form-control" placeholder="Optional">
+                                                    <input type="text" id="RSSName" class="form-control" name="nameRSSField" placeholder="Optional">
                                                     <label for="RSSName">Name of the RSS Feed</label>
                                                 </div>
                                                 <div class="col">
@@ -195,7 +195,7 @@
                                     <tbody>
                                         {% for feed in feeds %}
                                         <tr>
-                                            <td>{{ feed.name }}</td>
+                                            <td><button type="button" class="btn btn-link" type="submit" value={{ feed.feedId }} name="SpecificRSSButton">{{ feed.name }}</button></td>
                                             <td>{{ feed.numberNews }}</td>
                                             <td>{{ feed.numberRelevantNews }}</td>
                                             <td>{{ feed.numberRelevantNewsToday }}</td>
@@ -227,8 +227,6 @@
         crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
-    <script src="{{ url_for('static', filename='assets/demo/chart-area-demo.js') }}"></script>
-    <script src="{{ url_for('static', filename='assets/demo/chart-bar-demo.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/datatables-simple-demo.js') }}"></script>
 </body>
