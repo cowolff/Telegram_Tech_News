@@ -4,7 +4,6 @@ import os
 import time
 import json
 import random
-import schedule
 from Database import Data
 from Update import send_message
 
@@ -13,6 +12,18 @@ from Update import send_message
 headers = {"User-Agent": 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0'} 
 process = "Amazon Crawler"
 file = "Amazon.py"
+
+def amazon_process(api_key, chat_ids):
+    while True:
+        minute = random.randrange(0, 59)
+        second = random.randrange(0, 59)
+        x=datetime.today()
+        y = x.replace(day=x.day, hour=x.hour, minute=x.minute, second=second, microsecond=0) + timedelta(minutes=1)
+        delta_t=y-x
+        secs=delta_t.total_seconds()
+        time.sleep(secs)
+        thread = threading.Thread(target=start, daemon=True, args=(api_key, chat_ids))
+        thread.start()
 
 def __check_single_price_error(asin, error, lines, data):
     description = str(error)

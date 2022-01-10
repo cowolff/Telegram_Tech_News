@@ -18,3 +18,7 @@ def get_update(database: Data, api_key: str):
 
 def send_message(message, chat_id, api_key):
     requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage?chat_id={chat_id}&text={message}')
+
+def send_message_to_chats(message, chat_ids, api_key):
+    for chat_id in chat_ids:
+        requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage?chat_id={chat_id}&text={message}')

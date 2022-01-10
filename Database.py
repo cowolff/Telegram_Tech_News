@@ -15,7 +15,8 @@ class Data:
         cur.execute('''CREATE TABLE IF NOT EXISTS Users(userName TEXT, password TEXT, PRIMARY KEY(userName))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Chats(chatId INTEGER, PRIMARY KEY (chatId))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Settings(api_key TEXT, PRIMARY KEY (api_key))''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_News(title TEXT, timestamp TEXT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_News(title TEXT, content TEXT, timestamp TEXT, link TEXT, relevance INT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Feed(title TEXT, link TEXT, feedId INT, PRIMARY KEY(feedId))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Amazon_Product(title TEXT, asin TEXT, PRIMARY KEY(asin))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Amazon_Search_Term(term TEXT, PRIMARY KEY(term))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Amazon_Search_Instance(term TEXT, timestamp TEXT, FOREIGN KEY(term) REFERENCES Amazon_Search_Term(term))''')
@@ -30,6 +31,7 @@ class Data:
         cur.close()
         self.__initUser()
         self.__initIssueId()
+        self.__initRSSId()
 
     def __initUser(self):
         cur = self.con.cursor()
@@ -52,6 +54,19 @@ class Data:
             cur.close()
         else:
             self.id = 0
+
+    def __initRSSId(self):
+        cur = self.con.cursor()
+        cur.execute('SELECT COUNT(*) FROM RSS_Feed')
+        result = cur.fetchone()[0]
+        cur.close()
+        if result != 0:
+            cur = self.con.cursor()
+            cur.execute('SELECT MAX(feedId) FROM RSS_Feed')
+            self.RSSid = cur.fetchone()[0]
+            cur.close()
+        else:
+            self.RSSid = 0
 
 
     def create_user(self, username, password):
@@ -98,20 +113,6 @@ class Data:
         cur = self.con.cursor()
         for id in chat_ids:
             cur.execute('''DELETE FROM Chats WHERE chatId=''' + str(id))
-        self.con.commit()
-        cur.close()
-
-    def get_rss_news(self):
-        cur = self.con.cursor()
-        cur.execute('SELECT title FROM RSS_News')
-        news = [x[0] for x in cur.fetchall()]
-        cur.close()
-        return news
-
-    def add_rss_news(self, title):
-        timestamp = time.time()
-        cur = self.con.cursor()
-        cur.execute("INSERT INTO RSS_News VALUES('" + title + "','" + str(timestamp) + "')")
         self.con.commit()
         cur.close()
 
@@ -341,4 +342,63 @@ class Data:
                 print(e)
                 dic = {"term":term, "numberProducts":"-1", "singleProducts":"-1", "lastUpdate":"0.0.0000 00:00:00"}
                 overview.append(dic)
+        return overview
+
+    def add_RSS_Feed(self, link, name):
+        cur = self.con.cursor()
+        self.RSSid = self.RSSid + 1
+        cur.execute("INSERT INTO RSS_Feed VALUES('%s', '%s', %s)" % (link, name, self.RSSid))
+        self.con.commit()
+        cur.close()
+
+    def get_RSS_Feeds(self):
+        cur = self.con.cursor()
+        cur.execute("SELECT * FROM RSS_Feed")
+        feeds = cur.fetchall()
+        feeds = [{"title":x[0], "link":x[1], "feedId":x[2]} for x in feeds]
+        cur.close()
+        return feeds
+
+    def remove_RSS_Feed(self, link):
+        cur = self.con.cursor()
+        cur.execute("DELETE FROM RSS_Feed WHERE link='%s';" % link)
+        self.con.commit()
+        cur.close()
+
+    def add_RSS_News(self, link, title, content, timestamp, relevance):
+        cur = self.con.cursor()
+        cur.execute("INSERT INTO RSS_News VALUES('%s','%s','%s','%s', %s);" % (title, content, str(timestamp), link, relevance))
+        self.con.commit()
+        cur.close()
+
+    def get_RSS_News(self, link, name):
+        cur = self.con.cursor()
+        cur.execute("SELECT * FROM RSS_News WHERE link='%s';" % link)
+        news = cur.fetchall()
+        news = [{"title":x[0], "content":[1], "timestamp":x[2], "name":name, "relevance":x[4]} for x in news]
+        cur.close()
+        return news
+
+    def get_RSS_Link_Title(self, id):
+        cur = self.con.cursor()
+        cur.execute("SELECT link, title FROM RSS_Feed WHERE feedId=%s;" % id)
+        data = cur.fetchone()
+        cur.close()
+        return data[0], data[1]
+
+    def get_RSS_Overview(self):
+        overview = []
+        feeds = self.get_RSS_Feeds()
+        for feed in feeds:
+            news = self.get_RSS_News(feed["link"], feed["title"])
+            timestamp_today = time.time() - (24 * 60 * 60)
+            number_relevant_news = len([x for x in news if news["relevance"]==1 and float(news["timestamp"]) > timestamp_today])
+            number_relevant_news_total = len([x for x in news if news["relevance"]==1])
+            number_news_total = len(news)
+            try:
+                latest_update = max([float(x["timestamp"]) for x in news])
+                date = datetime.fromtimestamp(float(latest_update)).strftime("%d/%m/%Y, %H:%M:%S")
+            except:
+                date = "00.00.0000 00:00"
+            overview.append({"feedId":feed["feedId"], "name":feed["title"], "lastUpdate":date, "numberNews":number_news_total, "numberRelevantNews":number_relevant_news_total, "numberRelevantNewsToday":number_relevant_news})
         return overview
