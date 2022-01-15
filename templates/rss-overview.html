@@ -195,7 +195,8 @@
                                     <tbody>
                                         {% for feed in feeds %}
                                         <tr>
-                                            <td><button type="button" class="btn btn-link" type="submit" value={{ feed.feedId }} name="SpecificRSSButton">{{ feed.name }}</button></td>
+                                            <td>
+                                                <a href={{ url_for('getRSSspecific', feedId=feed.feedId) }}>{{ feed.name }}</button></td>
                                             <td>{{ feed.numberNews }}</td>
                                             <td>{{ feed.numberRelevantNews }}</td>
                                             <td>{{ feed.numberRelevantNewsToday }}</td>

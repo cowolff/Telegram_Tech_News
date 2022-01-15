@@ -11,20 +11,34 @@ function getMax(arr) {
   return parseInt(max) + (max * 0.1);
 }
 
+function convertToDate(arr) {
+  var dates = [];
+  for (var i=0 ; i<arr.length ; i++) {
+    var date = new Date(arr[i]*1000);
+    var full_date = ""+date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear();
+    console.log(date.getDate());
+    dates.push(full_date);
+  }
+  console.log(dates);
+  return dates;
+}
+
 // Bar Chart Example
 var ctx = document.getElementById("myBarChart");
 var weeks = document.getElementById("myBarChart").dataset.weeks;
 var numbers = document.getElementById("myBarChart").dataset.numbers;
 
+console.log(weeks);
 weeks = JSON.parse(weeks);
 numbers = JSON.parse(numbers);
+var dates = convertToDate(weeks);
 
 var max = getMax(numbers);
 
 var myLineChart = new Chart(ctx, {
   type: 'bar',
   data: {
-    labels: weeks,
+    labels: dates,
     datasets: [{
       label: "Revenue",
       backgroundColor: "rgba(2,117,216,1)",
@@ -42,7 +56,7 @@ var myLineChart = new Chart(ctx, {
           display: false
         },
         ticks: {
-          maxTicksLimit: 6
+          maxTicksLimit: 7
         }
       }],
       yAxes: [{

@@ -20,7 +20,7 @@ function convertToDate(arr) {
     console.log(date.getDate());
     dates.push(full_date);
   }
-  console.log(dates)
+  console.log(dates);
   return dates;
 }
 // Area Chart Example
