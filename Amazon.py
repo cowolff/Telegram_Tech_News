@@ -22,7 +22,7 @@ def amazon_process(api_key):
         minute = random.randrange(0, 59)
         second = random.randrange(0, 59)
         x=datetime.today()
-        y = x.replace(day=x.day, hour=x.hour, minute=x.minute, second=second, microsecond=0) + timedelta(days=1)
+        y = x.replace(day=x.day, hour=7, minute=minute, second=second, microsecond=0) + timedelta(days=1)
         delta_t=y-x
         secs=delta_t.total_seconds()
         time.sleep(secs)

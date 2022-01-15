@@ -218,7 +218,9 @@ def getRSSspecific(feedId):
                 return getRSSSpecificPage(feedId, data, name)
 
 def getRSSSpecificPage(feedId, data, name):
-    title, link = data.get_RSS_Link_Title(feedId)
+    link, title = data.get_RSS_Link_Title(feedId)
+    print("Title:", title)
+    print("Link:", link)
     newsfeed = data.get_RSS_News(link, title)
     keywords = data.get_rss_keywords(feedId)
     tags = data.get_rss_tags(feedId)

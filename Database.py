@@ -366,7 +366,7 @@ class Data:
     def add_RSS_Feed(self, link, name):
         cur = self.con.cursor()
         self.RSSId = self.RSSId + 1
-        cur.execute("INSERT INTO RSS_Feed VALUES('%s', '%s', %s)" % (link, name, self.RSSId))
+        cur.execute("INSERT INTO RSS_Feed VALUES('%s', '%s', %s);" % (name, link, self.RSSId))
         self.con.commit()
         cur.close()
         return self.RSSId
@@ -387,7 +387,8 @@ class Data:
 
     def add_RSS_News(self, link, title, content, timestamp, relevance):
         cur = self.con.cursor()
-        cur.execute("INSERT INTO RSS_News VALUES('%s', '%s', %s, '%s', %s)" % (title, content, int(round(timestamp)), link, relevance))
+        print(title)
+        cur.execute("INSERT INTO RSS_News VALUES('%s', '%s', '%s', '%s', '%s');" % (title, content, int(round(timestamp)), link, relevance))
         self.con.commit()
         cur.close()
 
@@ -435,8 +436,8 @@ class Data:
         for feed in feeds:
             news = self.get_RSS_News(feed["link"], feed["title"])
             timestamp_today = time.time() - (24 * 60 * 60)
-            number_relevant_news = len([x for x in news if news["relevance"]==1 and float(news["timestamp"]) > timestamp_today])
-            number_relevant_news_total = len([x for x in news if news["relevance"]==1])
+            number_relevant_news = len([x for x in news if x["relevance"]==1 and float(x["timestamp"]) > timestamp_today])
+            number_relevant_news_total = len([x for x in news if x["relevance"]==1])
             number_news_total = len(news)
             try:
                 latest_update = max([float(x["timestamp"]) for x in news])

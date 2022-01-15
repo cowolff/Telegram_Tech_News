@@ -78,6 +78,7 @@ def determine_send(link, entry):
 def process_news(api_key):
     data = Data()
     news_links = data.get_RSS_Feeds()
+    print(news_links)
     for link in news_links:
         news_content = data.get_RSS_News(link["link"], link["title"])
         news_content = [x["title"] for x in news_content]
