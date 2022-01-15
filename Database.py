@@ -3,7 +3,7 @@ import requests
 import os
 import sqlite3
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class Data:
     
@@ -15,8 +15,10 @@ class Data:
         cur.execute('''CREATE TABLE IF NOT EXISTS Users(userName TEXT, password TEXT, PRIMARY KEY(userName))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Chats(chatId INTEGER, PRIMARY KEY (chatId))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Settings(api_key TEXT, PRIMARY KEY (api_key))''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_News(title TEXT, content TEXT, timestamp TEXT, link TEXT, relevance INT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_News(title TEXT, content TEXT, timestamp INT, link TEXT, relevance INT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Feed(title TEXT, link TEXT, feedId INT, PRIMARY KEY(feedId))''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Keyword(feedId INT, keyword TEXT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Tag(feedId INT, tag TEXT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Amazon_Product(title TEXT, asin TEXT, PRIMARY KEY(asin))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Amazon_Search_Term(term TEXT, PRIMARY KEY(term))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Amazon_Search_Instance(term TEXT, timestamp TEXT, FOREIGN KEY(term) REFERENCES Amazon_Search_Term(term))''')
@@ -27,11 +29,14 @@ class Data:
         cur.execute('''CREATE TABLE IF NOT EXISTS Amazon_Watchlist
                     (asin TEXT, PRIMARY KEY(asin))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Issues(id INT, process TEXT, description TEXT, file TEXT, line TEXT, timestamp TEXT, severity INT, done TEXT, PRIMARY KEY(id))''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS Tipps(id INT, type STRING, foreignKey INT, timestamp INT)''')
         self.con.commit()
         cur.close()
         self.__initUser()
         self.__initIssueId()
         self.__initRSSId()
+        self.__initTippsId()
+        self.last_drop_asin = None
 
     def __initUser(self):
         cur = self.con.cursor()
@@ -63,10 +68,23 @@ class Data:
         if result != 0:
             cur = self.con.cursor()
             cur.execute('SELECT MAX(feedId) FROM RSS_Feed')
-            self.RSSid = cur.fetchone()[0]
+            self.RSSId = cur.fetchone()[0]
             cur.close()
         else:
-            self.RSSid = 0
+            self.RSSId = 0
+
+    def __initTippsId(self):
+        cur = self.con.cursor()
+        cur.execute('SELECT COUNT(*) FROM Tipps')
+        result = cur.fetchone()[0]
+        cur.close()
+        if result != 0:
+            cur = self.con.cursor()
+            cur.execute('SELECT MAX(id) FROM Tipps')
+            self.tippsId = cur.fetchone()[0]
+            cur.close()
+        else:
+            self.tippsId = 0
 
 
     def create_user(self, username, password):
@@ -218,6 +236,7 @@ class Data:
             first = prices[0][0].split(",")[0]
             second = prices[1][0].split(",")[0]
             if((float(first) / float(second)) < (1 - threshold)):
+                self.last_drop_asin = asin
                 return True
             else:
                 return False
@@ -346,10 +365,11 @@ class Data:
 
     def add_RSS_Feed(self, link, name):
         cur = self.con.cursor()
-        self.RSSid = self.RSSid + 1
-        cur.execute("INSERT INTO RSS_Feed VALUES('%s', '%s', %s)" % (link, name, self.RSSid))
+        self.RSSId = self.RSSId + 1
+        cur.execute("INSERT INTO RSS_Feed VALUES('%s', '%s', %s)" % (link, name, self.RSSId))
         self.con.commit()
         cur.close()
+        return self.RSSId
 
     def get_RSS_Feeds(self):
         cur = self.con.cursor()
@@ -367,15 +387,15 @@ class Data:
 
     def add_RSS_News(self, link, title, content, timestamp, relevance):
         cur = self.con.cursor()
-        cur.execute("INSERT INTO RSS_News VALUES('%s','%s','%s','%s', %s);" % (title, content, str(timestamp), link, relevance))
+        cur.execute("INSERT INTO RSS_News VALUES('%s', '%s', %s, '%s', %s)" % (title, content, int(round(timestamp)), link, relevance))
         self.con.commit()
         cur.close()
 
     def get_RSS_News(self, link, name):
         cur = self.con.cursor()
-        cur.execute("SELECT * FROM RSS_News WHERE link='%s';" % link)
+        cur.execute("SELECT * FROM RSS_News WHERE link='%s' ORDER BY timestamp DESC;" % link)
         news = cur.fetchall()
-        news = [{"title":x[0], "content":[1], "timestamp":x[2], "name":name, "relevance":x[4]} for x in news]
+        news = [{"title":x[0], "content":x[1], "timestamp":x[2], "name":name, "relevance":x[4]} for x in news]
         cur.close()
         return news
 
@@ -385,6 +405,29 @@ class Data:
         data = cur.fetchone()
         cur.close()
         return data[0], data[1]
+
+    def add_news_tipp(self, foreign_id, type, timestamp):
+        self.tippsId = self.tippsId + 1
+        timestamp = int(round(float(timestamp)))
+        cur = self.con.cursor()
+        cur.execute("INSERT INTO Tipps VALUES('%s', '%s', '%s', '%s');" % (self.tippsId, type, foreign_id, timestamp))
+        self.con.commit()
+        cur.close()
+
+    def get_news_tipps_by_id(self, id):
+        cur = self.con.cursor()
+        cur.execute("SELECT * FROM Tipps WHERE id='%s';" % (id))
+        result = cur.fetchone()
+        result = {"id":result[0], "type":result[1], "foreignKey":id, "timestamp":result[3]}
+        cur.close()
+        return result
+
+    def get_news_number_by_timestamps(self, lower_range, upper_range):
+        cur = self.con.cursor()
+        cur.execute("SELECT Count(*) FROM RSS_News WHERE timestamp<%s AND timestamp>%s;" % (upper_range, lower_range))
+        count = cur.fetchone()[0]
+        cur.close()
+        return count
 
     def get_RSS_Overview(self):
         overview = []
@@ -402,3 +445,50 @@ class Data:
                 date = "00.00.0000 00:00"
             overview.append({"feedId":feed["feedId"], "name":feed["title"], "lastUpdate":date, "numberNews":number_news_total, "numberRelevantNews":number_relevant_news_total, "numberRelevantNewsToday":number_relevant_news})
         return overview
+
+    def get_home(self):
+        products = self.get_overview_products()
+        if self.last_drop_asin is not None:
+            prices = self.get_prices(self.last_drop_asin)
+            prd_labels = [float(x[1]) for x in prices[0:20]]
+            prd_prices = [float(x[0].replce(",",".").replace("€","")) for x in prices[0:20]]
+        else:
+            prd_labels = [0,0,0,0,0,0]
+            prd_prices = [0,0,0,0,0,0]
+        current_date = datetime.today()
+        bar_counts = []
+        bar_dates = []
+        for i in range(7):
+            upper_range = current_date.timestamp()
+            current_date = current_date - timedelta(days=1)
+            lower_range = current_date.timestamp()
+            bar_counts.append(self.get_news_number_by_timestamps(lower_range, upper_range))
+            bar_dates.append(current_date.timestamp())
+        print(bar_dates)
+        return products, prd_labels, prd_prices, bar_counts, bar_dates
+        
+    def add_rss_keyword(self, feedId, keyword):
+        cur = self.con.cursor()
+        cur.execute("INSERT INTO RSS_Keyword VALUES('%s', '%s')" % (feedId, keyword))
+        self.con.commit()
+        cur.close()
+
+    def get_rss_keywords(self, feedId):
+        cur = self.con.cursor()
+        cur.execute("SELECT keyword FROM RSS_Keyword WHERE feedId='%s'" % (feedId))
+        keywords = [{"word":x[0]} for x in cur.fetchall()]
+        cur.close()
+        return keywords
+
+    def add_rss_tag(self, feedId, tag):
+        cur = self.con.cursor()
+        cur.execute("INSERT INTO RSS_Tag VALUES('%s', '%s')" % (feedId, tag))
+        self.con.commit()
+        cur.close()
+
+    def get_rss_tags(self, feedId):
+        cur = self.con.cursor()
+        cur.execute("SELECT tag FROM RSS_Tag WHERE feedId='%s'" % (feedId))
+        tags = [{"tag":x[0]} for x in cur.fetchall()]
+        cur.close()
+        return tags
