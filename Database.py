@@ -387,10 +387,14 @@ class Data:
 
     def add_RSS_News(self, link, title, content, timestamp, relevance):
         cur = self.con.cursor()
-        print(title)
-        cur.execute("INSERT INTO RSS_News VALUES('%s', '%s', '%s', '%s', '%s');" % (title, content, int(round(timestamp)), link, relevance))
-        self.con.commit()
-        cur.close()
+        try:
+            print(title)
+            cur.execute("INSERT INTO RSS_News VALUES('%s', '%s', '%s', '%s', '%s');" % (title, content, int(round(timestamp)), link, relevance))
+            self.con.commit()
+            cur.close()
+        except:
+            cur.close()
+            print("Couldnt add News with title: " + title)
 
     def get_RSS_News(self, link, name):
         cur = self.con.cursor()
