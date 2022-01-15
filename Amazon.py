@@ -5,7 +5,9 @@ import time
 import json
 import random
 from Database import Data
-from Update import send_message
+from Update import send_message, send_message_to_chats
+from datetime import datetime, timedelta
+import threading
 
 # Google "My User Agent" And Replace It
 
@@ -109,11 +111,6 @@ def check_search(TERM, data):
         __check_search_error(TERM, e, "70-93", data)
         return products
 
-def amazon_thread(data, check_time):
-    minute = random.randint(0,60)
-    check_time = str(check_time) + ":" + str(minute)
-    schedule.every().day.at(check_time).do(start,data)
-
 def start(api_key, chat_ids):
 
     data = Data()
@@ -134,9 +131,8 @@ def start(api_key, chat_ids):
             data.add_amazon_search_result(term, timestamp, product["asin"])
             data.add_amazon_price(product["asin"], product["price"], timestamp)
             if(data.check_drop(product["asin"], 0.1)):
-                for chat in chat_ids:
-                    send_message("Das Produkt \n\n" + product["title"] + "\nmit dem Link: https://www.amazon.de/dp/" + product["asin"] + "/\n\nist signifikant im Preis gefallen"
-                                + "\n\n das Produkt wurde im Rahmen des Surch-Terms '" + term + "' aufgezeichnet")
+                send_message_to_chats("Das Produkt \n\n" + product["title"] + "\nmit dem Link: https://www.amazon.de/dp/" + product["asin"] + "/\n\nist signifikant im Preis gefallen"
+                                + "\n\n das Produkt wurde im Rahmen des Surch-Terms '" + term + "' aufgezeichnet", data.get_chats(), api_key, 0, "Amazon - " + product["asin"])
 
     # watchlist = data.get_watchlist()
     watchlist = [["B08ZLW675G"],["B07CMH5F9R"],["B081QX9V2Y"],["B08CVJ59G3"], ["B09L61QRM1"]]
@@ -148,8 +144,7 @@ def start(api_key, chat_ids):
         result = check_single_price(element[0], data)
         data.add_amazon_price(result["asin"], result["price"], timetamp)
         if(data.check_drop(result["asin"], 0.1)):
-            for chat in chat_ids:
-                send_message("Das Produkt \n\n" + result["title"] + "\nmit dem Link: https://www.amazon.de/dp/" + result["asin"] + "/\n\nist signifikant im Preis gefallen", chat, api_key)
+            send_message_to_chats("Das Produkt \n\n" + result["title"] + "\nmit dem Link: https://www.amazon.de/dp/" + result["asin"] + "/\n\nist signifikant im Preis gefallen",  data.get_chats(), api_key, 0, "Amazib - " + result["asin"])
         time.sleep(random.uniform(0,30))
 
 
