@@ -199,7 +199,7 @@ def getRSSspecific(feedId):
         if request.method == 'POST':
             if request.form.get('Reload-Button') == "Reload Feed":
                 title, link = data.get_RSS_Link_Title(feedId)
-                process_news([[link, title]], data)
+                process_news(api)
                 return getRSSSpecificPage(feedId, data, name)
 
             if request.form.get('keywordAddButton') == "Add":
