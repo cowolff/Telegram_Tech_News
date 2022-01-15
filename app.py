@@ -11,6 +11,8 @@ import threading
 from Amazon import start, check_single_price
 import time
 from ProcessManager import ProcessManager
+from RSS_Feed import process_news
+from datetime import datetime
 
 api = ""  # The API-Key for the Telegram Bot
 chat_ids = ["653734838"]    # List of chat ids which want to be updated
@@ -58,7 +60,13 @@ def getHome():
         labels = [1640449288, 1640458256, 1640468256, 1640478256, 1640488256, 1640948256, 1641448256]
         numberOfNews = [12, 11, 5, 3, 9]
         weeksNumbers = [41, 42, 43, 44, 45]
-        return render_template('index.html', products=products, prices=test, labels=labels, numberOfNews=numberOfNews, weeksNumbers=weeksNumbers, name=name)
+        products, prd_labels, prd_prices, bar_counts, bar_dates = data.get_home()
+        print("Products: ", products)
+        print("prd_labels: ", prd_labels)
+        print("prd_prices: ", prd_prices)
+        print("bar_counts: ", bar_counts)
+        print("bar_dates: ", bar_dates)
+        return render_template('index.html', products=products, prices=prd_prices, labels=prd_labels, numberOfNews=bar_counts, weeksNumbers=bar_dates, name=name)
     else:
         return redirect(url_for('getLogin'))
 
@@ -173,6 +181,7 @@ def getRSSOverview():
                 feeds = data.get_RSS_Overview()
                 return render_template('rss-overview.html', feeds=feeds, name=name)
             elif request.form.get('SpecificRSSButton'):
+                print("TEST")
                 return redirect(url_for('getRSSspecific', feedId=request.form.get('SpecificRSSButton')))
     else:
         return redirect(url_for('getLogin'))
@@ -185,13 +194,38 @@ def getRSSspecific(feedId):
         name = sessions[ips.index(request.remote_addr)]["username"]
 
         if request.method == 'GET':
-            link, title = data.get_RSS_Link_Title(feedId)
-            newsfeed = data.get_RSS_News(link)
-            return render_template('rss-specific.html', newsfeed=newsfeed, name=name, title=title, link=link)
+            return getRSSSpecificPage(feedId, data, name)
+
         if request.method == 'POST':
-            link, title = data.get_RSS_Link_Title(feedId)
-            newsfeed = data.get_RSS_News(link)
-            return render_template('rss-specific.html', newsfeed=newsfeed, name=name, title=title, link=link)
+            if request.form.get('Reload-Button') == "Reload Feed":
+                title, link = data.get_RSS_Link_Title(feedId)
+                process_news([[link, title]], data)
+                return getRSSSpecificPage(feedId, data, name)
+
+            if request.form.get('keywordAddButton') == "Add":
+                keyword = request.form.get('keywordAddField')
+                if keyword != "":
+                    data.add_rss_keyword(feedId, keyword)
+                    return getRSSSpecificPage(feedId, data, name)
+
+            if request.form.get('tagAddButton') == "Add":
+                tag = request.form.get('tagAddField')
+                if tag != "":
+                    data.add_rss_tag(feedId, tag)
+                    return getRSSSpecificPage(feedId, data, name)
+
+            else:
+                return getRSSSpecificPage(feedId, data, name)
+
+def getRSSSpecificPage(feedId, data, name):
+    title, link = data.get_RSS_Link_Title(feedId)
+    newsfeed = data.get_RSS_News(link, title)
+    keywords = data.get_rss_keywords(feedId)
+    tags = data.get_rss_tags(feedId)
+    newsfeed = [{"title":x["title"], "content":x["content"], "timestamp":datetime.fromtimestamp(float(x["timestamp"])).strftime("%d/%m/%Y, %H:%M:%S"), "name":x["name"], "relevance":x["relevance"]} for x in newsfeed]
+    return render_template('rss-specific.html', newsfeed=newsfeed, name=name, title=title, link=link, id=feedId, keywords=keywords, tags=tags)
+
+
 #x = threading.Thread(target=start, args=(api, chat_ids), daemon=True)
 #x.start()
 
