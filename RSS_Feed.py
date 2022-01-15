@@ -5,7 +5,7 @@ import re
 import logging
 import requests
 from Database import Data
-from Update import get_update, send_message
+from Update import get_update, send_message, send_message_to_chats
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -33,9 +33,9 @@ def determine_send(link, entry):
     keyword_matches = []
     tag_matches = []
     
-    if link[2][0] == '' and link[1][0] == '':
-        return True
-
+    #if link[2][0] == '' and link[1][0] == '':
+    #    return True
+    return False
     if hasattr(entry, 'tags') and link[1][0] != '':
         tag_matches = [i for i in link[1] if i in [x.term for x in entry.tags]]
     if link[2][0] != '':
@@ -53,16 +53,15 @@ def determine_send(link, entry):
     return False
 
 def process_news(news_links, data):
-    news_content = data.get_rss_news()
     for link in news_links:
+        news_content = data.get_RSS_News(link[0], link[1])
         NewsFeed = feedparser.parse(link[0])
         for entry in NewsFeed.entries:
             if str(entry.title).replace("'", "") not in news_content:
-                data.add_rss_news(str(entry.title).replace("'", ""))
+                id = data.add_RSS_News(link[0], str(entry.title).replace("'", ""), str(entry.summary), time.time(), -1)
                 if determine_send(link, entry):
                     print(entry.title)
-                    for chat_id in data.get_chats():
-                        send_message(entry.title + "\n\n" + entry.summary + "\n\n" + str(entry.link), chat_id, api_key)
+                    send_message_to_chats(entry.title + "\n\n" + entry.summary + "\n\n" + str(entry.link), data.get_chats(), api_key, id, "RSS")
 
 if __name__=="__main__":
     data = Data()
