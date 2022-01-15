@@ -230,3 +230,4 @@ def getRSSSpecificPage(feedId, data, name):
 #x.start()
 
 processManager = ProcessManager(api, chat_ids)
+processManager.start()

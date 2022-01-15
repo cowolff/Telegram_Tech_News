@@ -6,6 +6,9 @@ import logging
 import requests
 from Database import Data
 from Update import get_update, send_message, send_message_to_chats
+import random
+import threading
+from datetime import datetime, timedelta
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -15,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 api_key = ""
-refresh = 15 # refresh interval in minutes
+refresh = 30 # refresh interval in minutes
 
 def get_config():
     with open("config.txt", "r") as conf:
@@ -27,7 +30,27 @@ def get_config():
             keywords = re.split('[()]', line)[3].split(", ")
             news_links.append((link, tags, keywords))
         return news_links
-    
+
+def rss_process(api_key):
+    data = Data()
+    chat_ids = data.get_chats()
+    print("Gathering RSS Feeds")
+    thread = threading.Thread(target=process_news, daemon=True, args=(api_key,))
+    thread.start()
+    while True:
+        data = Data()
+        chat_ids = data.get_chats()
+        minute = random.randrange(0, 59)
+        second = random.randrange(0, 59)
+        x=datetime.now()
+        y = x.replace(day=x.day, hour=x.hour, minute=x.minute, second=second, microsecond=0) + timedelta(minutes=refresh)
+        delta_t=y-x
+        secs=delta_t.total_seconds()
+        time.sleep(secs)
+        if x.hour < 23 or x.hour > 8:
+            print("Gathering RSS Feeds")
+            thread = threading.Thread(target=process_news, daemon=True, args=(api_key,))
+            thread.start()
 
 def determine_send(link, entry):
     keyword_matches = []
@@ -52,13 +75,16 @@ def determine_send(link, entry):
 
     return False
 
-def process_news(news_links, data):
+def process_news(api_key):
+    data = Data()
+    news_links = data.get_RSS_Feeds()
     for link in news_links:
-        news_content = data.get_RSS_News(link[0], link[1])
-        NewsFeed = feedparser.parse(link[0])
+        news_content = data.get_RSS_News(link["link"], link["title"])
+        news_content = [x["title"] for x in news_content]
+        NewsFeed = feedparser.parse(link["link"])
         for entry in NewsFeed.entries:
             if str(entry.title).replace("'", "") not in news_content:
-                id = data.add_RSS_News(link[0], str(entry.title).replace("'", ""), str(entry.summary), time.time(), -1)
+                id = data.add_RSS_News(link["link"], str(entry.title).replace("'", ""), str(entry.summary), time.time(), -1)
                 if determine_send(link, entry):
                     print(entry.title)
                     send_message_to_chats(entry.title + "\n\n" + entry.summary + "\n\n" + str(entry.link), data.get_chats(), api_key, id, "RSS")

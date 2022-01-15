@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import threading
 from Update import send_message_to_chats
 from Amazon import amazon_process
+from RSS_Feed import rss_process
 import random
 
 class ProcessManager():
@@ -17,19 +18,15 @@ class ProcessManager():
         self.__data = Data()
         self.chat_ids = chat_ids
         self.api_key = api
-        self.__amazonProcess = threading.Thread(target=amazon_process, daemon=True, args=(self.api_key, self.chat_ids))
-
-        # self.__rssProcess = threading.Thread(target=__rss_process, daemon=True)
-        # self.__rssProcess.start()
+        self.__amazonProcess = threading.Thread(target=amazon_process, daemon=True, args=(self.api_key,))
+        self.__rssProcess = threading.Thread(target=rss_process, daemon=True, args=(self.api_key,))
 
         self.x = threading.Thread(target=self.__checkStatus, daemon=True)
 
     def start(self):
         self.__amazonProcess.start()
+        self.__rssProcess.start()
         self.x.start()
-
-    def __rss_process(self):
-        pass
 
     def check_process(self, process, is_running, is_current, name):
         if not process.is_alive():
@@ -50,4 +47,4 @@ class ProcessManager():
         while True:
             time.sleep(30)
             self.check_process(self.__amazonProcess, self.amazon_crawler, current_incident_amazon, "Amazon Crawler")
-            # self.check_process(self.__rssProcess, self.rss, current_incident_rss, "RSS Feed")
+            self.check_process(self.__rssProcess, self.rss, current_incident_rss, "RSS Crawler")
