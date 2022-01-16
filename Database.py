@@ -15,7 +15,7 @@ class Data:
         cur.execute('''CREATE TABLE IF NOT EXISTS Users(userName TEXT, password TEXT, PRIMARY KEY(userName))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Chats(chatId INTEGER, PRIMARY KEY (chatId))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Settings(api_key TEXT, PRIMARY KEY (api_key))''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_News(title TEXT, content TEXT, timestamp INT, link TEXT, relevance INT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_News(title TEXT, tags TEXT, timestamp INT, link TEXT, relevance INT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Feed(title TEXT, link TEXT, feedId INT, PRIMARY KEY(feedId))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Keyword(feedId INT, keyword TEXT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Tag(feedId INT, tag TEXT)''')
@@ -385,22 +385,22 @@ class Data:
         self.con.commit()
         cur.close()
 
-    def add_RSS_News(self, link, title, content, timestamp, relevance):
+    def add_RSS_News(self, link, title, tags, timestamp, relevance):
         cur = self.con.cursor()
         try:
             print(title)
-            cur.execute("INSERT INTO RSS_News VALUES('%s', '%s', '%s', '%s', '%s');" % (title, content, int(round(timestamp)), link, relevance))
+            cur.execute("INSERT INTO RSS_News VALUES('%s', '%s', '%s', '%s', '%s');" % (title, tags, int(round(timestamp)), link, relevance))
             self.con.commit()
             cur.close()
         except:
             cur.close()
-            print("Couldnt add News with title: " + title)
-
+            print("Couldnt add News with title: " + title + " and tags: " + tags)
+ 
     def get_RSS_News(self, link, name):
         cur = self.con.cursor()
         cur.execute("SELECT * FROM RSS_News WHERE link='%s' ORDER BY timestamp DESC;" % link)
         news = cur.fetchall()
-        news = [{"title":x[0], "content":x[1], "timestamp":x[2], "name":name, "relevance":x[4]} for x in news]
+        news = [{"title":x[0], "tags":x[1], "timestamp":x[2], "name":name, "relevance":x[4]} for x in news]
         cur.close()
         return news
 

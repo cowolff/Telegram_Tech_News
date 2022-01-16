@@ -224,7 +224,7 @@ def getRSSSpecificPage(feedId, data, name):
     newsfeed = data.get_RSS_News(link, title)
     keywords = data.get_rss_keywords(feedId)
     tags = data.get_rss_tags(feedId)
-    newsfeed = [{"title":x["title"], "content":x["content"], "timestamp":datetime.fromtimestamp(float(x["timestamp"])).strftime("%d/%m/%Y, %H:%M:%S"), "name":x["name"], "relevance":x["relevance"]} for x in newsfeed]
+    newsfeed = [{"title":x["title"], "tags":x["tags"], "timestamp":datetime.fromtimestamp(float(x["timestamp"])).strftime("%d/%m/%Y, %H:%M:%S"), "name":x["name"], "relevance":x["relevance"]} for x in newsfeed]
     return render_template('rss-specific.html', newsfeed=newsfeed, name=name, title=title, link=link, id=feedId, keywords=keywords, tags=tags)
 
 

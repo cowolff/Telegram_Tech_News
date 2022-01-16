@@ -85,7 +85,13 @@ def process_news(api_key):
         NewsFeed = feedparser.parse(link["link"])
         for entry in NewsFeed.entries:
             if str(entry.title).replace("'", "") not in news_content:
-                id = data.add_RSS_News(link["link"], str(entry.title).replace("'", ""), str(entry.summary), time.time(), -1)
+                try:
+                    tags = ' '.join(str(e.term) for e in entry.tags)
+                    tags = tags.replace("'", "")
+                except:
+                    tags = "None"
+                print(tags)
+                id = data.add_RSS_News(link["link"], str(entry.title).replace("'", ""), tags, time.time(), -1)
                 if determine_send(link, entry):
                     print(entry.title)
                     send_message_to_chats(entry.title + "\n\n" + entry.summary + "\n\n" + str(entry.link), data.get_chats(), api_key, id, "RSS")
