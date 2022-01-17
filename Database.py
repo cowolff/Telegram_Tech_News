@@ -204,9 +204,11 @@ class Data:
         try:
             cur = self.con.cursor()
             cur.execute("INSERT INTO Amazon_Watchlist VALUES('%s');" % asin)
+            self.con.commit()
             cur.close()
             return True
-        except sqlite3.IntegrityError:
+        except sqlite3.IntegrityError as e:
+            print(e)
             cur.close()
             return False
 

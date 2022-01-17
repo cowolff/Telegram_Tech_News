@@ -136,14 +136,14 @@ def start(api_key, chat_ids):
                 send_message_to_chats("Das Produkt \n\n" + product["title"] + "\nmit dem Link: https://www.amazon.de/dp/" + product["asin"] + "/\n\nist signifikant im Preis gefallen"
                                 + "\n\n das Produkt wurde im Rahmen des Surch-Terms '" + term + "' aufgezeichnet", data.get_chats(), api_key, 0, "Amazon - " + product["asin"])
 
-    # watchlist = data.get_watchlist()
-    watchlist = [["B08ZLW675G"],["B07CMH5F9R"],["B081QX9V2Y"],["B08CVJ59G3"], ["B09L61QRM1"]]
+    watchlist = data.get_watchlist()
+    # watchlist = [["B08ZLW675G"],["B07CMH5F9R"],["B081QX9V2Y"],["B08CVJ59G3"], ["B09L61QRM1"]]
 
-    watchlist = [e for e in watchlist if e[0] not in asins]
-    print(watchlist)
+    watchlist = [e for e in watchlist if e not in asins]
+    print("Watchlist:", watchlist)
     for element in watchlist:
         timetamp = time.time()
-        result = check_single_price(element[0], data)
+        result = check_single_price(element, data)
         data.add_amazon_price(result["asin"], result["price"], timetamp)
         if(data.check_drop(result["asin"], 0.1)):
             send_message_to_chats("Das Produkt \n\n" + result["title"] + "\nmit dem Link: https://www.amazon.de/dp/" + result["asin"] + "/\n\nist signifikant im Preis gefallen",  data.get_chats(), api_key, 0, "Amazib - " + result["asin"])

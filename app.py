@@ -26,7 +26,8 @@ database = Data()
 # The base route either redirects to the login screen or to the home screen.
 @app.route('/')
 def base():
-    if request.remote_addr in sessions:
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
         return redirect(url_for("getHome"))
     else:
         return redirect(url_for("getLogin"))
@@ -35,15 +36,19 @@ def base():
 # Login path for signining into the back-end.
 @app.route('/login', methods=['GET', 'POST'])
 def getLogin():
-    data = Data()
-    error = None
-    if request.method == 'POST':
-        if data.check_password(request.form['username'], request.form['password']):
-            sessions.append({"ip": request.remote_addr, "username": request.form['username']})
-            return redirect(url_for('getHome'))
-        else:
-            error = "Invalid username or password"
-    return render_template('login.html', error=error)
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        data = Data()
+        error = None
+        if request.method == 'POST':
+            if data.check_password(request.form['username'], request.form['password']):
+                sessions.append({"ip": request.remote_addr, "username": request.form['username']})
+                return redirect(url_for('getHome'))
+            else:
+                error = "Invalid username or password"
+        return render_template('login.html', error=error)
+    else:
+        return redirect(url_for("getHome"))
 
 
 # The home link shows an overview of the tracked products and the number of news tips sent.
@@ -61,11 +66,6 @@ def getHome():
         numberOfNews = [12, 11, 5, 3, 9]
         weeksNumbers = [41, 42, 43, 44, 45]
         products, prd_labels, prd_prices, bar_counts, bar_dates = data.get_home()
-        print("Products: ", products)
-        print("prd_labels: ", prd_labels)
-        print("prd_prices: ", prd_prices)
-        print("bar_counts: ", bar_counts)
-        print("bar_dates: ", bar_dates)
         return render_template('index.html', products=products, prices=prd_prices, labels=prd_labels, numberOfNews=bar_counts, weeksNumbers=bar_dates, name=name)
     else:
         return redirect(url_for('getLogin'))
@@ -118,7 +118,7 @@ def getAmazonProductList():
         if request.method == 'POST':
             if request.form.get('AsinAddButton') == "Add":
                 asin = request.form['asinTextInput']
-                print("Term:" + asin)
+                print("Term: " + asin)
                 term = request.form['asinNameInput']
                 if term == "":
                     product = check_single_price(asin, data)
@@ -181,7 +181,6 @@ def getRSSOverview():
                 feeds = data.get_RSS_Overview()
                 return render_template('rss-overview.html', feeds=feeds, name=name)
             elif request.form.get('SpecificRSSButton'):
-                print("TEST")
                 return redirect(url_for('getRSSspecific', feedId=request.form.get('SpecificRSSButton')))
     else:
         return redirect(url_for('getLogin'))
@@ -216,11 +215,11 @@ def getRSSspecific(feedId):
 
             else:
                 return getRSSSpecificPage(feedId, data, name)
+    else:
+        redirect(url_for("getLogin"))
 
 def getRSSSpecificPage(feedId, data, name):
     link, title = data.get_RSS_Link_Title(feedId)
-    print("Title:", title)
-    print("Link:", link)
     newsfeed = data.get_RSS_News(link, title)
     keywords = data.get_rss_keywords(feedId)
     tags = data.get_rss_tags(feedId)
@@ -233,3 +232,4 @@ def getRSSSpecificPage(feedId, data, name):
 
 processManager = ProcessManager(api, chat_ids)
 processManager.start()
+# start(api, chat_ids)
