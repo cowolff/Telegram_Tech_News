@@ -37,7 +37,7 @@ def base():
 @app.route('/login', methods=['GET', 'POST'])
 def getLogin():
     ips = [x["ip"] for x in sessions]
-    if request.remote_addr in ips:
+    if request.remote_addr not in ips:
         data = Data()
         error = None
         if request.method == 'POST':
