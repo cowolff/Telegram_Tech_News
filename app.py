@@ -226,7 +226,13 @@ def getRSSSpecificPage(feedId, data, name):
     newsfeed = [{"title":x["title"], "tags":x["tags"], "timestamp":datetime.fromtimestamp(float(x["timestamp"])).strftime("%d/%m/%Y, %H:%M:%S"), "name":x["name"], "relevance":x["relevance"]} for x in newsfeed]
     return render_template('rss-specific.html', newsfeed=newsfeed, name=name, title=title, link=link, id=feedId, keywords=keywords, tags=tags)
 
-
+@app.route('/settings/<userName>', methods=['GET', 'POST'])
+def getSettings(userName):
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        return render_template('settings.html', name=userName)
+    else:
+        redirect(url_for("getLogin"))
 #x = threading.Thread(target=start, args=(api, chat_ids), daemon=True)
 #x.start()
 
