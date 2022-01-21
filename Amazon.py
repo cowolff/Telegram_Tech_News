@@ -54,7 +54,13 @@ def check_single_price(ASIN, data):
         soup  = BeautifulSoup(page.content, 'html.parser')
 
         #Finding the elements
-        product_title = soup.find(id='productTitle').text
+        try:
+            product_title = soup.find(id='productTitle').text
+        except AttributeError:
+            print("Bot protection kicked in or something else went wrong")
+            title = data.get_product(ASIN)
+            dic = {"asin": ASIN, "title":title, "price": "-1,0€"}
+            return dic
 
         if soup.find(id='corePrice_desktop') is not None:
             try:
