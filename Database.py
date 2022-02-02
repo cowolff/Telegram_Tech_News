@@ -16,7 +16,7 @@ class Data:
         cur.execute('''CREATE TABLE IF NOT EXISTS Chats(chatId INTEGER, PRIMARY KEY (chatId))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Settings(api_key TEXT, PRIMARY KEY (api_key))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS RSS_News(title TEXT, tags TEXT, timestamp INT, link TEXT, relevance INT)''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Feed(title TEXT, link TEXT, feedId INT, PRIMARY KEY(feedId))''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Feed(title TEXT, link TEXT, feedId INT, language TEXT, PRIMARY KEY(feedId))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Keyword(feedId INT, keyword TEXT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Tag(feedId INT, tag TEXT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Amazon_Product(title TEXT, asin TEXT, PRIMARY KEY(asin))''')
@@ -365,10 +365,10 @@ class Data:
                 overview.append(dic)
         return overview
 
-    def add_RSS_Feed(self, link, name):
+    def add_RSS_Feed(self, link, name, language):
         cur = self.con.cursor()
         self.RSSId = self.RSSId + 1
-        cur.execute("INSERT INTO RSS_Feed VALUES('%s', '%s', %s);" % (name, link, self.RSSId))
+        cur.execute("INSERT INTO RSS_Feed VALUES('%s', '%s', %s, '%s');" % (name, link, self.RSSId, language))
         self.con.commit()
         cur.close()
         return self.RSSId
@@ -377,7 +377,7 @@ class Data:
         cur = self.con.cursor()
         cur.execute("SELECT * FROM RSS_Feed")
         feeds = cur.fetchall()
-        feeds = [{"title":x[0], "link":x[1], "feedId":x[2]} for x in feeds]
+        feeds = [{"title":x[0], "link":x[1], "feedId":x[2], "language":x[3]} for x in feeds]
         cur.close()
         return feeds
 
@@ -386,6 +386,16 @@ class Data:
         cur.execute("DELETE FROM RSS_Feed WHERE link='%s';" % link)
         self.con.commit()
         cur.close()
+
+    def getDownloadNews(self):
+        feeds = self.get_RSS_Feeds()
+        result = []
+        for feed in feeds:
+            news = self.get_RSS_News(feed["link"], feed["title"])
+            for new in news:
+                current = {"title":new["title"], "tags":new["tags"], "source":feed["title"], "language":feed["language"], "timestamp":new["timestamp"]}
+                result.append(current)
+        return result
 
     def add_RSS_News(self, link, title, tags, timestamp, relevance):
         cur = self.con.cursor()
@@ -450,7 +460,7 @@ class Data:
                 date = datetime.fromtimestamp(float(latest_update)).strftime("%d/%m/%Y, %H:%M:%S")
             except:
                 date = "00.00.0000 00:00"
-            overview.append({"feedId":feed["feedId"], "name":feed["title"], "lastUpdate":date, "numberNews":number_news_total, "numberRelevantNews":number_relevant_news_total, "numberRelevantNewsToday":number_relevant_news})
+            overview.append({"feedId":feed["feedId"], "name":feed["title"], "language":feed["language"], "lastUpdate":date, "numberNews":number_news_total, "numberRelevantNews":number_relevant_news_total, "numberRelevantNewsToday":number_relevant_news})
         return overview
 
     def get_home(self):

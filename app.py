@@ -4,7 +4,7 @@ Author: Cornelius Wolff
 eMail: cowolff@uos.de
 """
 
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, Response
 from Database import Data
 from Update import send_message
 import threading
@@ -13,6 +13,7 @@ import time
 from ProcessManager import ProcessManager
 from RSS_Feed import process_news
 from datetime import datetime
+import csv
 
 api = ""  # The API-Key for the Telegram Bot
 chat_ids = ["653734838"]    # List of chat ids which want to be updated
@@ -175,13 +176,32 @@ def getRSSOverview():
             if request.form.get('RSSAdd') == "Add":
                 link = request.form['linkRSSField']
                 title = request.form['nameRSSField']
-                if(title == "" or link == ""):
+                language = request.form['languageInput']
+                if(title == "" or link == "" or language == "Choose a language"):
                     return render_template('rss-overview.html', feeds=feeds, name=name)
-                data.add_RSS_Feed(link, title)
+                data.add_RSS_Feed(link, title, language)
                 feeds = data.get_RSS_Overview()
                 return render_template('rss-overview.html', feeds=feeds, name=name)
             elif request.form.get('SpecificRSSButton'):
                 return redirect(url_for('getRSSspecific', feedId=request.form.get('SpecificRSSButton')))
+    else:
+        return redirect(url_for('getLogin'))
+
+
+@app.route('/rss/download', methods=["GET"])
+def downloadRSS():
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        data = Data()
+        csv_data = data.getDownloadNews()
+        with open('data.csv', "w", newline='', encoding='utf-8') as outputfile:
+            keys = csv_data[0].keys()
+            dict_writer = csv.DictWriter(outputfile, keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(csv_data)
+        with open("data.csv") as fp:
+            csv_data = fp.read()
+            return Response(csv_data, mimetype="text/csv", headers={"Content-disposition":"attachment; filename=data.csv"})
     else:
         return redirect(url_for('getLogin'))
 

@@ -131,6 +131,10 @@
                             <input class="breadcrumb-item active" type="submit" value="Reload"
                                 name="Reload-Button"></input>
                         </ol>
+                        <ol class="breadcrumb">
+                        <a class="btn btn-primary" href="{{ url_for('downloadRSS') }}"
+                                 name="Download-Button">Download news data</a>
+                                </ol>
                         <ol class="breadcrumb mb-3">
                         </ol>
                         <div class="card mb-4">
@@ -144,15 +148,26 @@
                                         <form>
                                             <div class="row">
                                                 <div class="col">
-                                                    <input type="text" id="linkRSS" class="form-control" name="linkRSSField" placeholder="http://rss.com/feed">
+                                                    <input type="text" id="linkRSS" class="form-control"
+                                                        name="linkRSSField" placeholder="http://rss.com/feed">
                                                     <label for="linkRSS">Link</label>
                                                 </div>
                                                 <div class="col">
-                                                    <input type="text" id="RSSName" class="form-control" name="nameRSSField" placeholder="Optional">
+                                                    <input type="text" id="RSSName" class="form-control"
+                                                        name="nameRSSField" placeholder="Optional">
                                                     <label for="RSSName">Name of the RSS Feed</label>
                                                 </div>
                                                 <div class="col">
-                                                    <input class="btn btn-primary" name="RSSAdd" type="submit" value="Add"></input>
+                                                    <select class="form-select" aria-label="LanguageSelector" name="languageInput">
+                                                        <option selected>Choose a language</option>
+                                                        <option value="German">German</option>
+                                                        <option value="English">English</option>
+                                                        <option value="Dutch">Dutch</option>
+                                                      </select>
+                                                </div>
+                                                <div class="col">
+                                                    <input class="btn btn-primary" name="RSSAdd" type="submit"
+                                                        value="Add"></input>
                                                 </div>
                                             </div>
                                         </form>
@@ -181,7 +196,9 @@
                                         {% for feed in feeds %}
                                         <tr>
                                             <td>
-                                                <a href={{ url_for('getRSSspecific', feedId=feed.feedId) }}>{{ feed.name }}</button></td>
+                                                <a href={{ url_for('getRSSspecific', feedId=feed.feedId) }}>{{ feed.name
+                                                    }}</button>
+                                            </td>
                                             <td>{{ feed.numberNews }}</td>
                                             <td>{{ feed.numberRelevantNews }}</td>
                                             <td>{{ feed.numberRelevantNewsToday }}</td>
