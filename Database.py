@@ -393,7 +393,7 @@ class Data:
         for feed in feeds:
             news = self.get_RSS_News(feed["link"], feed["title"])
             for new in news:
-                current = {"title":new["title"], "tags":new["tags"], "source":feed["title"], "language":feed["language"], "timestamp":new["timestamp"]}
+                current = {"title":new["title"], "tags":new["tags"], "source":feed["title"], "language":feed["language"], "timestamp":new["timestamp"], "relevance":new["relevance"]}
                 result.append(current)
         return result
 
