@@ -182,6 +182,10 @@ def getRSSOverview():
                 data.add_RSS_Feed(link, title, language)
                 feeds = data.get_RSS_Overview()
                 return render_template('rss-overview.html', feeds=feeds, name=name)
+            if request.form.get('Reload-Button') == "Reload":
+                process_news(api)
+                feeds = data.get_RSS_Overview()
+                return render_template('rss-overview.html', feeds=feeds, name=name)
             elif request.form.get('SpecificRSSButton'):
                 return redirect(url_for('getRSSspecific', feedId=request.form.get('SpecificRSSButton')))
     else:
