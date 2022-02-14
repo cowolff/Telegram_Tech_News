@@ -509,3 +509,9 @@ class Data:
         tags = [{"tag":x[0]} for x in cur.fetchall()]
         cur.close()
         return tags
+
+    def update_priority(self, title, tags, priority):
+        cur = self.con.cursor()
+        cur.execute("UPDATE RSS_News SET priority=%s WHERE title='%s' AND tags='%s'" % (priority, title, tags))
+        self.con.commit()
+        cur.close()

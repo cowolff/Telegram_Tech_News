@@ -257,8 +257,21 @@ def getSettings(userName):
         return render_template('settings.html', name=userName)
     else:
         redirect(url_for("getLogin"))
-#x = threading.Thread(target=start, args=(api, chat_ids), daemon=True)
-#x.start()
+
+
+@app.route('/api/rss/priority', methods=['POST'])
+def updatePriority():
+    try:
+        content = request.get_json()
+        data = Data()
+        for article in content:
+            title = article["title"]
+            tags = article["tags"]
+            priority = article["priority"]
+            data.update_priority(title, tags, priority)
+        return "Update successful"
+    except:
+        return "Update failed"
 
 processManager = ProcessManager(api, chat_ids)
 processManager.start()
