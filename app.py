@@ -11,7 +11,7 @@ import threading
 from Amazon import start, check_single_price
 import time
 from ProcessManager import ProcessManager
-from RSS_Feed import process_news
+from RSS_Feed import process_news, determine_send
 from datetime import datetime
 import csv
 
@@ -217,36 +217,51 @@ def getRSSspecific(feedId):
         name = sessions[ips.index(request.remote_addr)]["username"]
 
         if request.method == 'GET':
-            return getRSSSpecificPage(feedId, data, name)
+            return getRSSSpecificPage(feedId, data, name, False)
 
         if request.method == 'POST':
             if request.form.get('Reload-Button') == "Reload Feed":
                 title, link = data.get_RSS_Link_Title(feedId)
                 process_news(api)
-                return getRSSSpecificPage(feedId, data, name)
+                return getRSSSpecificPage(feedId, data, name, False)
+
+            if request.form.get('filterNews') == "Filter for keywords and tags":
+                return getRSSSpecificPage(feedId, data, name, True)
 
             if request.form.get('keywordAddButton') == "Add":
                 keyword = request.form.get('keywordAddField')
                 if keyword != "":
                     data.add_rss_keyword(feedId, keyword)
-                    return getRSSSpecificPage(feedId, data, name)
+                    return getRSSSpecificPage(feedId, data, name, False)
+
+            if request.form.get('removeTag'):
+                tag = request.form.get('removeTag')
+                data.remove_rss_tag(feedId, tag)
+                return getRSSSpecificPage(feedId, data, name, False)
+
+            if request.form.get('removeKeyword'):
+                keyword = request.form.get('removeKeyword').lower()
+                data.remove_rss_keyword(feedId, keyword)
+                return getRSSSpecificPage(feedId, data, name, False)
 
             if request.form.get('tagAddButton') == "Add":
-                tag = request.form.get('tagAddField')
+                tag = request.form.get('tagAddField').lower()
                 if tag != "":
                     data.add_rss_tag(feedId, tag)
-                    return getRSSSpecificPage(feedId, data, name)
+                    return getRSSSpecificPage(feedId, data, name, False)
 
             else:
-                return getRSSSpecificPage(feedId, data, name)
+                return getRSSSpecificPage(feedId, data, name, False)
     else:
         redirect(url_for("getLogin"))
 
-def getRSSSpecificPage(feedId, data, name):
+def getRSSSpecificPage(feedId, data, name, filter: bool):
     link, title = data.get_RSS_Link_Title(feedId)
     newsfeed = data.get_RSS_News(link, title)
     keywords = data.get_rss_keywords(feedId)
     tags = data.get_rss_tags(feedId)
+    if filter:
+        newsfeed = [x for x in newsfeed if determine_send(x["title"], x["tags"], feedId, data)]
     newsfeed = [{"title":x["title"], "tags":x["tags"], "timestamp":datetime.fromtimestamp(float(x["timestamp"])).strftime("%d/%m/%Y, %H:%M:%S"), "name":x["name"], "relevance":x["relevance"]} for x in newsfeed]
     return render_template('rss-specific.html', newsfeed=newsfeed, name=name, title=title, link=link, id=feedId, keywords=keywords, tags=tags)
 

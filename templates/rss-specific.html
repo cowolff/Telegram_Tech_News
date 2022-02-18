@@ -160,6 +160,10 @@
                                 Tracked Products on Amazon
                             </div>
                             <div class="card-body">
+                                <input class="btn btn-primary" name="filterNews" type="submit"
+                                                        value="Filter for keywords and tags"></input>
+                            </div>
+                            <div class="card-body">
                                 <table id="datatablesSimple" class="table" style="width:100%">
                                     <thead>
                                         <tr>
@@ -233,7 +237,8 @@
                                                 {% for keyword in keywords %}
                                                 <tr>
                                                     <td>{{ keyword.word }}</td>
-                                                    <td>Action</td>
+                                                    <td><button class="breadcrumb-item active" type="submit" value={{ keyword.word }}
+                                                        name="removeKeyword">Remove</button></td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>
@@ -251,7 +256,8 @@
                                                 {% for tag in tags %}
                                                 <tr>
                                                     <td>{{ tag.tag }}</td>
-                                                    <td>Action</td>
+                                                    <td><button class="breadcrumb-item active" type="submit" value={{ tag.tag }}
+                                                        name="removeTag">Remove</button></td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>

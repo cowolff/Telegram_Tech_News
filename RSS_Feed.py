@@ -52,47 +52,43 @@ def rss_process(api_key):
             thread = threading.Thread(target=process_news, daemon=True, args=(api_key,))
             thread.start()
 
-def determine_send(link, entry):
-    keyword_matches = []
-    tag_matches = []
-    
-    #if link[2][0] == '' and link[1][0] == '':
-    #    return True
-    return False
-    if hasattr(entry, 'tags') and link[1][0] != '':
-        tag_matches = [i for i in link[1] if i in [x.term for x in entry.tags]]
-    if link[2][0] != '':
-        keyword_matches = [i for i in link[2] if i in str(entry.title)]
+def determine_send(title, tags, feed_id, data: Data):
 
-    if len(keyword_matches) > 0 and link[1][0] == '':
-        return True
+    keywords = data.get_rss_keywords(feed_id)
+    keywords = [word["word"].lower() for word in keywords]
+    feed_tags = data.get_rss_tags(feed_id)
+    feed_tags = [tag["tag"].lower() for tag in feed_tags]
 
-    if len(tag_matches) > 0 and link[2][0] == '':
-        return True
+    if any(word in title for word in keywords) or len(keywords) == 0:
+        pass
+    else:
+        return False
 
-    if link[1][0] != '' and len(tag_matches) > 0 and link[2][0] != '' and len(keyword_matches) > 0:
-        return True
+    if any(tag in tags for tag in feed_tags) or len(tags) == 0:
+        pass
+    else:
+        return False
 
-    return False
+    return True
 
 def process_news(api_key):
     data = Data()
     news_links = data.get_RSS_Feeds()
-    print(news_links)
     for link in news_links:
         news_content = data.get_RSS_News(link["link"], link["title"])
         news_content = [x["title"] for x in news_content]
         NewsFeed = feedparser.parse(link["link"])
         for entry in NewsFeed.entries:
-            if str(entry.title).replace("'", "") not in news_content:
+            title = str(entry.title).replace("'", "")
+            if title not in news_content:
                 try:
-                    tags = ' '.join(str(e.term) for e in entry.tags)
+                    tags = ' '.join(str(e.term).lower() for e in entry.tags)
                     tags = tags.replace("'", "")
                 except:
                     tags = "None"
                 print(tags)
-                id = data.add_RSS_News(link["link"], str(entry.title).replace("'", ""), tags, time.time(), -1)
-                if determine_send(link, entry):
+                id = data.add_RSS_News(link["link"], title, tags, time.time(), -1)
+                if determine_send(title, tags, link["feedId"], data):
                     print(entry.title)
                     send_message_to_chats(entry.title + "\n\n" + entry.summary + "\n\n" + str(entry.link), data.get_chats(), api_key, id, "RSS")
 

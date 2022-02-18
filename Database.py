@@ -493,9 +493,21 @@ class Data:
     def get_rss_keywords(self, feedId):
         cur = self.con.cursor()
         cur.execute("SELECT keyword FROM RSS_Keyword WHERE feedId='%s'" % (feedId))
-        keywords = [{"word":x[0]} for x in cur.fetchall()]
+        keywords = [{"word":str(x[0]).lower()} for x in cur.fetchall()]
         cur.close()
         return keywords
+
+    def remove_rss_keyword(self, feedId, keyword):
+        cur = self.con.cursor()
+        cur.execute("DELETE FROM RSS_Keyword WHERE keyword='%s' AND feedId='%s'" % (keyword, feedId))
+        self.con.commit()
+        cur.close()
+
+    def remove_rss_tag(self, feedId, tag):
+        cur = self.con.cursor()
+        cur.execute("DELETE FROM RSS_Tag WHERE tag='%s' AND feedId='%s'" % (tag, feedId))
+        self.con.commit()
+        cur.close()
 
     def add_rss_tag(self, feedId, tag):
         cur = self.con.cursor()
@@ -506,7 +518,7 @@ class Data:
     def get_rss_tags(self, feedId):
         cur = self.con.cursor()
         cur.execute("SELECT tag FROM RSS_Tag WHERE feedId='%s'" % (feedId))
-        tags = [{"tag":x[0]} for x in cur.fetchall()]
+        tags = [{"tag":str(x[0]).lower()} for x in cur.fetchall()]
         cur.close()
         return tags
 
