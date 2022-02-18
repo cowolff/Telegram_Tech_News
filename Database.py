@@ -527,3 +527,16 @@ class Data:
         cur.execute("UPDATE RSS_News SET priority=%s WHERE title='%s' AND tags='%s'" % (priority, title, tags))
         self.con.commit()
         cur.close()
+
+    def get_api_key(self):
+        cur = self.con.cursor()
+        cur.execute("SELECT * FROM Settings")
+        api_key = {"api_key": cur.fetchone()[0]}
+        cur.close()
+        return api_key
+
+    def update_api_key(self, new_key):
+        cur = self.con.cursor()
+        cur.execute("UPDATE Settings SET api_key='%s'" % (new_key))
+        self.con.commit()
+        cur.close()
