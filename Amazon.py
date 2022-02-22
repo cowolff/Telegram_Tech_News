@@ -15,9 +15,10 @@ headers = {"User-Agent": 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Geck
 process = "Amazon Crawler"
 file = "Amazon.py"
 
-def amazon_process(api_key):
+def amazon_process():
     while True:
         data = Data()
+        api_key = data.get_api_key()["api_key"]
         chat_ids = data.get_chats()
         minute = random.randrange(0, 59)
         second = random.randrange(0, 59)

@@ -15,7 +15,6 @@ from RSS_Feed import process_news, determine_send
 from datetime import datetime
 import csv
 
-api = ""  # The API-Key for the Telegram Bot
 chat_ids = ["653734838"]    # List of chat ids which want to be updated
 app = Flask(__name__)
 sessions = []   # Login Sessions for the backend
@@ -183,6 +182,7 @@ def getRSSOverview():
                 feeds = data.get_RSS_Overview()
                 return render_template('rss-overview.html', feeds=feeds, name=name)
             if request.form.get('Reload-Button') == "Reload":
+                api = data.get_api_key()["api_key"]
                 process_news(api)
                 feeds = data.get_RSS_Overview()
                 return render_template('rss-overview.html', feeds=feeds, name=name)
@@ -222,6 +222,7 @@ def getRSSspecific(feedId):
         if request.method == 'POST':
             if request.form.get('Reload-Button') == "Reload Feed":
                 title, link = data.get_RSS_Link_Title(feedId)
+                api = data.get_api_key()["api_key"]
                 process_news(api)
                 return getRSSSpecificPage(feedId, data, name, False)
 
@@ -269,7 +270,18 @@ def getRSSSpecificPage(feedId, data, name, filter: bool):
 def getSettings(userName):
     ips = [x["ip"] for x in sessions]
     if request.remote_addr in ips:
-        return render_template('settings.html', name=userName)
+        data = Data()
+        api_key = data.get_api_key()["api_key"]
+        if request.method == 'POST':
+            if request.form.get('APIKey') == "Update":
+                if request.form.get('apiKeyInput') == "":
+                    return render_template('settings.html', name=userName, api_key=api_key, id=userName)
+                else:
+                    key = request.form.get('apiKeyInput')
+                    data.update_api_key(key)
+                    api_key = data.get_api_key()["api_key"]
+                    return render_template('settings.html', name=userName, api_key=api_key, id=userName)
+        return render_template('settings.html', name=userName, api_key=api_key, id=userName)
     else:
         redirect(url_for("getLogin"))
 
@@ -288,6 +300,5 @@ def updatePriority():
     except:
         return "Update failed"
 
-processManager = ProcessManager(api, chat_ids)
+processManager = ProcessManager(chat_ids)
 processManager.start()
-# start(api, chat_ids)

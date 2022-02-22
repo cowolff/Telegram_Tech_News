@@ -17,7 +17,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-api_key = ""
 refresh = 30 # refresh interval in minutes
 
 def get_config():
@@ -31,14 +30,17 @@ def get_config():
             news_links.append((link, tags, keywords))
         return news_links
 
-def rss_process(api_key):
+def rss_process():
     data = Data()
+    get_update()
     chat_ids = data.get_chats()
-    print("Gathering RSS Feeds")
+    api_key = data.get_api_key()["api_key"]
     thread = threading.Thread(target=process_news, daemon=True, args=(api_key,))
     thread.start()
     while True:
         data = Data()
+        get_update()
+        api_key = data.get_api_key()["api_key"]
         chat_ids = data.get_chats()
         minute = random.randrange(0, 59)
         second = random.randrange(0, 59)
@@ -47,8 +49,7 @@ def rss_process(api_key):
         delta_t=y-x
         secs=delta_t.total_seconds()
         time.sleep(secs)
-        if x.hour < 23 or x.hour > 8:
-            print("Gathering RSS Feeds")
+        if x.hour < 22 or x.hour > 8:
             thread = threading.Thread(target=process_news, daemon=True, args=(api_key,))
             thread.start()
 
@@ -86,23 +87,8 @@ def process_news(api_key):
                     tags = tags.replace("'", "")
                 except:
                     tags = "None"
-                print(tags)
                 id = data.add_RSS_News(link["link"], title, tags, time.time(), -1)
-                if determine_send(title, tags, link["feedId"], data):
+                if determine_send(title, tags, link["feedId"], data) and api_key != "no_value":
                     print(entry.title)
                     send_message_to_chats(entry.title + "\n\n" + entry.summary + "\n\n" + str(entry.link), data.get_chats(), api_key, id, "RSS")
 
-if __name__=="__main__":
-    data = Data()
-    while True:
-        news_links = []
-        try:
-            news_links = get_config()
-        except Exception as e:
-            print(e)
-        now = datetime.datetime.now()
-        if now.hour > 7 and now.hour < 22:
-            get_update(data, api_key)
-            process_news(news_links, data)
-            print("Checked", now)
-        time.sleep(refresh * 60)

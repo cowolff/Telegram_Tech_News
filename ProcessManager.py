@@ -13,13 +13,12 @@ class ProcessManager():
     amazon_crawler = False
     rss = False
 
-    def __init__(self, api, chat_ids):
+    def __init__(self, chat_ids):
 
         self.__data = Data()
         self.chat_ids = chat_ids
-        self.api_key = api
-        self.__amazonProcess = threading.Thread(target=amazon_process, daemon=True, args=(self.api_key,))
-        self.__rssProcess = threading.Thread(target=rss_process, daemon=True, args=(self.api_key,))
+        self.__amazonProcess = threading.Thread(target=amazon_process, daemon=True)
+        self.__rssProcess = threading.Thread(target=rss_process, daemon=True)
 
         self.x = threading.Thread(target=self.__checkStatus, daemon=True)
 

@@ -36,6 +36,7 @@ class Data:
         self.__initIssueId()
         self.__initRSSId()
         self.__initTippsId()
+        self.__initAPIKey()
         self.last_drop_asin = None
 
     def __initUser(self):
@@ -86,6 +87,16 @@ class Data:
         else:
             self.tippsId = 0
 
+    def __initAPIKey(self):
+        cur = self.con.cursor()
+        cur.execute("SELECT COUNT(*) FROM Settings")
+        result = cur.fetchone()[0]
+        cur.close()
+        if result == 0:
+            cur = self.con.cursor()
+            cur.execute("INSERT INTO Settings VALUES('no_value')")
+            self.con.commit()
+            cur.close()
 
     def create_user(self, username, password):
         cur = self.con.cursor()
