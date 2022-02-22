@@ -60,6 +60,12 @@ def determine_send(title, tags, feed_id, data: Data):
     feed_tags = data.get_rss_tags(feed_id)
     feed_tags = [tag["tag"].lower() for tag in feed_tags]
 
+    if len(feed_tags) == 0 and len(keywords) == 0:
+        return False
+
+    if len([key for key in keywords if key == "all"]) > 0:
+        return True
+
     if any(word in title for word in keywords) or len(keywords) == 0:
         pass
     else:
