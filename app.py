@@ -230,13 +230,13 @@ def getRSSspecific(feedId):
                 return getRSSSpecificPage(feedId, data, name, True)
 
             if request.form.get('keywordAddButton') == "Add":
-                keyword = request.form.get('keywordAddField')
+                keyword = request.form.get('keywordAddField').lower()
                 if keyword != "":
                     data.add_rss_keyword(feedId, keyword)
                     return getRSSSpecificPage(feedId, data, name, False)
 
             if request.form.get('removeTag'):
-                tag = request.form.get('removeTag')
+                tag = request.form.get('removeTag').lower()
                 data.remove_rss_tag(feedId, tag)
                 return getRSSSpecificPage(feedId, data, name, False)
 
