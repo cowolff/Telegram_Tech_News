@@ -118,7 +118,6 @@ def getAmazonProductList():
         if request.method == 'POST':
             if request.form.get('AsinAddButton') == "Add":
                 asin = request.form['asinTextInput']
-                print("Term: " + asin)
                 term = request.form['asinNameInput']
                 if term == "":
                     product = check_single_price(asin, data)

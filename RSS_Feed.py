@@ -69,17 +69,10 @@ def determine_send(title, tags, feed_id, data: Data):
     if len([key for key in keywords if key == "all"]) > 0:
         return True
 
-    if any(word in title for word in keywords) or len(keywords) == 0:
-        pass
+    if any(word in title for word in keywords) or any(tag in tags for tag in feed_tags):
+        return True
     else:
         return False
-
-    if any(tag in tags for tag in feed_tags) or len(tags) == 0:
-        pass
-    else:
-        return False
-
-    return True
 
 def process_news(api_key):
     data = Data()
