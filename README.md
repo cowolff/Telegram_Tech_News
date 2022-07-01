@@ -7,5 +7,5 @@ flask run --host=0.0.0.0
 ```
 Obviously you need to install all used libraries first. Please note that this is not a finished product and you should NOT make this accessible to the open web!!!! I do not take responsibility for any security flaws because there will be a lot of those. Besides there are still some buttons which are not fully implemented and will return 404 errors (though this should not crash the server at any point). This is simply a small program I designed managing all of my RSS feeds and should ONLY be accessible from within the local network.
 
-The name of the standard user is cowolff and the password is 1234567. This is how the interace of the RSS-Back-end looks:
+The name of the standard user is cowolff and the password is 1234567. This is how the interface of the RSS-Back-end looks:
 ![image](https://github.com/cowolff/Telegram_Tech_News/blob/main/Screenshot/RSSFeeds.JPG)
