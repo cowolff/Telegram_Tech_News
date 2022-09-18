@@ -78,26 +78,29 @@ def process_news(api_key):
     data = Data()
     news_links = data.get_RSS_Feeds()
     for link in news_links:
-        news_content = data.get_RSS_News(link["link"], link["title"])
-        news_content = [x["title"] for x in news_content]
-        NewsFeed = feedparser.parse(link["link"])
-        for entry in NewsFeed.entries:
-            title = str(entry.title).replace("'", "")
-            if title not in news_content:
-                try:
-                    tags = ' '.join(str(e.term).lower() for e in entry.tags)
-                    tags = tags.replace("'", "")
-                except:
-                    tags = "None"
-                id = data.add_RSS_News(link["link"], title, tags, time.time(), -1)
-                if determine_send(title, tags, link["feedId"], data) and api_key != "no_value":
-                    print(entry.title)
+        try:
+            news_content = data.get_RSS_News(link["link"], link["title"])
+            news_content = [x["title"] for x in news_content]
+            NewsFeed = feedparser.parse(link["link"])
+            for entry in NewsFeed.entries:
+                title = str(entry.title).replace("'", "")
+                if title not in news_content:
                     try:
-                        source = entry.source
+                        tags = ' '.join(str(e.term).lower() for e in entry.tags)
+                        tags = tags.replace("'", "")
                     except:
-                        source = ""
-                    try:
-                        summary = entry.summary
-                    except:
-                        summary = ""
-                    send_message_to_chats(entry.title + "\n" + summary + "\n" + str(entry.link) + "\n" + source, data.get_chats(), api_key, id, "RSS")
+                        tags = "None"
+                    id = data.add_RSS_News(link["link"], title, tags, time.time(), -1)
+                    if determine_send(title, tags, link["feedId"], data) and api_key != "no_value":
+                        print(entry.title)
+                        try:
+                            source = entry.source
+                        except:
+                            source = ""
+                        try:
+                            summary = entry.summary
+                        except:
+                            summary = ""
+                        send_message_to_chats(entry.title + "\n" + summary + "\n" + str(entry.link) + "\n" + source, data.get_chats(), api_key, id, "RSS")
+        except:
+            print("Couldn't load data from link " + str(link))

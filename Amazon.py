@@ -87,7 +87,7 @@ def check_single_price(ASIN, data):
         return dic
         
     except Exception as e:
-        return __check_single_price_error(ASIN, e, "29-54", data)
+        print("Couldn't check Amazon link " + ASIN)
         
 
 def check_search(TERM, data):
