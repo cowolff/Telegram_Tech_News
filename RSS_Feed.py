@@ -92,5 +92,12 @@ def process_news(api_key):
                 id = data.add_RSS_News(link["link"], title, tags, time.time(), -1)
                 if determine_send(title, tags, link["feedId"], data) and api_key != "no_value":
                     print(entry.title)
-                    send_message_to_chats(entry.title + "\n\n" + entry.summary + "\n\n" + str(entry.link), data.get_chats(), api_key, id, "RSS")
-
+                    try:
+                        source = entry.source
+                    except:
+                        source = ""
+                    try:
+                        summary = entry.summary
+                    except:
+                        summary = ""
+                    send_message_to_chats(entry.title + "\n" + summary + "\n" + str(entry.link) + "\n" + source, data.get_chats(), api_key, id, "RSS")
