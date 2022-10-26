@@ -66,6 +66,7 @@ def getHome():
         numberOfNews = [12, 11, 5, 3, 9]
         weeksNumbers = [41, 42, 43, 44, 45]
         products, prd_labels, prd_prices, bar_counts, bar_dates = data.get_home()
+        print(prd_prices)
         return render_template('index.html', products=products, prices=prd_prices, labels=prd_labels, numberOfNews=bar_counts, weeksNumbers=bar_dates, name=name)
     else:
         return redirect(url_for('getLogin'))
@@ -284,6 +285,13 @@ def getSettings(userName):
     else:
         redirect(url_for("getLogin"))
 
+@app.route('/profile', methods=['GET', 'POST'])
+def getProfile():
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        data = Data()
+        if request.method == 'GET':
+            return render_template('profile.html')
 
 @app.route('/api/rss/priority', methods=['POST'])
 def updatePriority():
