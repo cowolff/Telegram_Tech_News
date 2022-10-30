@@ -65,9 +65,9 @@ def getHome():
         labels = [1640449288, 1640458256, 1640468256, 1640478256, 1640488256, 1640948256, 1641448256]
         numberOfNews = [12, 11, 5, 3, 9]
         weeksNumbers = [41, 42, 43, 44, 45]
-        products, prd_labels, prd_prices, bar_counts, bar_dates = data.get_home()
-        print(prd_prices)
-        return render_template('index.html', products=products, prices=prd_prices, labels=prd_labels, numberOfNews=bar_counts, weeksNumbers=bar_dates, name=name)
+        products, prd_labels, prd_prices, bar_counts, bar_dates, today_count, forwarded_count, share = data.get_home()
+        processesNotRunning = processManager.numberNotRunning()
+        return render_template('index.html', products=products, prices=prd_prices, labels=prd_labels, numberOfNews=bar_counts, weeksNumbers=bar_dates, name=name, numberNewsGathered=today_count, numberNewsForwarded=forwarded_count, processesNotRunning=processesNotRunning, shareAcceptance=share)
     else:
         return redirect(url_for('getLogin'))
 
@@ -266,8 +266,8 @@ def getRSSSpecificPage(feedId, data, name, filter: bool):
     newsfeed = [{"title":x["title"], "tags":x["tags"], "timestamp":datetime.fromtimestamp(float(x["timestamp"])).strftime("%d/%m/%Y, %H:%M:%S"), "name":x["name"], "relevance":x["relevance"]} for x in newsfeed]
     return render_template('rss-specific.html', newsfeed=newsfeed, name=name, title=title, link=link, id=feedId, keywords=keywords, tags=tags)
 
-@app.route('/settings/<userName>', methods=['GET', 'POST'])
-def getSettings(userName):
+@app.route('/settings', methods=['GET', 'POST'])
+def getSettings():
     ips = [x["ip"] for x in sessions]
     if request.remote_addr in ips:
         data = Data()

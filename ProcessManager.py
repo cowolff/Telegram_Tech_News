@@ -47,3 +47,18 @@ class ProcessManager():
             time.sleep(30)
             self.check_process(self.__amazonProcess, self.amazon_crawler, current_incident_amazon, "Amazon Crawler")
             self.check_process(self.__rssProcess, self.rss, current_incident_rss, "RSS Crawler")
+
+    def numberNotRunning(self):
+        i = 0
+        for process in [self.__amazonProcess, self.__rssProcess]:
+            if not process.is_alive():
+                i = i + 1
+        return i
+
+    def restartProcesses(self):
+        if not self.__amazonProcess.is_alive():
+            self.__amazonProcess = threading.Thread(target=amazon_process, daemon=True)
+            self.__amazonProcess.start()
+        if not self.__rssProcess.is_alive():
+            self.__rssProcess = threading.Thread(target=rss_process, daemon=True)
+            self.__rssProcess.start()

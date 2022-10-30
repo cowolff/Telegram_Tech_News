@@ -474,6 +474,31 @@ class Data:
             overview.append({"feedId":feed["feedId"], "name":feed["title"], "language":feed["language"], "lastUpdate":date, "numberNews":number_news_total, "numberRelevantNews":number_relevant_news_total, "numberRelevantNewsToday":number_relevant_news})
         return overview
 
+    def get_today_news_count(self):
+        now = datetime.today()
+        now = now.replace(hour=0, minute=0, second=0)
+        timestamp = now.timestamp()
+        cur = self.con.cursor()
+        cur.execute("SELECT Count(*) FROM RSS_News WHERE timestamp>%s;" % (timestamp))
+        overall_count = cur.fetchone()[0]
+        cur.execute("SELECT Count(*) FROM RSS_News WHERE timestamp>%s AND relevance=1;" % (timestamp))
+        forwarded_count = cur.fetchone()[0]
+        cur.close()
+        return overall_count, forwarded_count
+
+    def get_weeks_share(self):
+        now = datetime.today()
+        now = now - timedelta(days=7)
+        timestamp = now.timestamp()
+        cur = self.con.cursor()
+        cur.execute("SELECT Count(*) FROM RSS_News WHERE timestamp>%s AND relevance=1;" % (timestamp))
+        forwarded = cur.fetchone()[0]
+        cur.execute("SELECT Count(*) FROM RSS_News WHERE timestamp>%s AND relevance=2;" % (timestamp))
+        relevant = cur.fetchone()[0]
+        cur.execute("SELECT Count(*) FROM RSS_News WHERE timestamp>%s AND relevance=3;" % (timestamp))
+        article = cur.fetchone()[0]
+        return [article, relevant, forwarded]
+
     def get_home(self):
         products = self.get_overview_products()
         if self.last_drop_asin is not None:
@@ -484,6 +509,8 @@ class Data:
             prd_labels = [0,0,0,0,0,0]
             prd_prices = [0,0,0,0,0,0]
         current_date = datetime.today()
+        current_date.replace(hour=0, minute=0, second=0)
+        today_count, forwarded_count = self.get_today_news_count()
         bar_counts = []
         bar_dates = []
         for i in range(7):
@@ -492,8 +519,9 @@ class Data:
             lower_range = current_date.timestamp()
             bar_counts.append(self.get_news_number_by_timestamps(lower_range, upper_range))
             bar_dates.append(current_date.timestamp())
-        print(bar_dates)
-        return products, prd_labels, prd_prices, bar_counts, bar_dates
+
+        share = self.get_weeks_share()
+        return products, prd_labels, prd_prices, bar_counts, bar_dates, today_count, forwarded_count, share
         
     def add_rss_keyword(self, feedId, keyword):
         cur = self.con.cursor()
