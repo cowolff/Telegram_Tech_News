@@ -408,6 +408,7 @@ class Data:
                 result.append(current)
         return result
 
+
     def add_RSS_News(self, link, title, tags, timestamp, relevance):
         cur = self.con.cursor()
         try:

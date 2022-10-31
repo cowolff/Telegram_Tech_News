@@ -170,22 +170,22 @@ def getRSSOverview():
         # feeds = [{"name":"Winfuture", "numberNews":121, "numberRelevantNews":6, "numberRelevantNewsToday":2, "lastUpdate":"11.16.2021 8:21"}, {"name":"TheVerge", "numberNews":98, "numberRelevantNews":8, "numberRelevantNewsToday":2, "lastUpdate":"11.16.2021 8:25"}]
         feeds = data.get_RSS_Overview()
         if request.method == 'GET':
-            return render_template('rss-overview.html', feeds=feeds, name=name)
+            return render_template('rss.html', feeds=feeds, name=name)
         if request.method == 'POST':
             if request.form.get('RSSAdd') == "Add":
                 link = request.form['linkRSSField']
                 title = request.form['nameRSSField']
                 language = request.form['languageInput']
                 if(title == "" or link == "" or language == "Choose a language"):
-                    return render_template('rss-overview.html', feeds=feeds, name=name)
+                    return render_template('rss.html', feeds=feeds, name=name)
                 data.add_RSS_Feed(link, title, language)
                 feeds = data.get_RSS_Overview()
-                return render_template('rss-overview.html', feeds=feeds, name=name)
+                return render_template('rss.html', feeds=feeds, name=name)
             if request.form.get('Reload-Button') == "Reload":
                 api = data.get_api_key()["api_key"]
                 process_news(api)
                 feeds = data.get_RSS_Overview()
-                return render_template('rss-overview.html', feeds=feeds, name=name)
+                return render_template('rss.html', feeds=feeds, name=name)
             elif request.form.get('SpecificRSSButton'):
                 return redirect(url_for('getRSSspecific', feedId=request.form.get('SpecificRSSButton')))
     else:
@@ -208,6 +208,24 @@ def downloadRSS():
             return Response(csv_data, mimetype="text/csv", headers={"Content-disposition":"attachment; filename=data.csv"})
     else:
         return redirect(url_for('getLogin'))
+
+@app.route('/rss/download/<feedId>', methods=["GET"])
+def downloadRSS(feedId):
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        data = Data()
+        link, title = data.get_RSS_Link_Title(feedId)
+        newsfeed = data.get_RSS_News(link, title)
+        with open('data.csv', "w", newline='', encoding='utf-8') as outputfile:
+            keys = newsfeed[0].keys()
+            dict_writer = csv.DictWriter(outputfile, keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(newsfeed)
+        with open("data.csv") as fp:
+            csv_data = fp.read()
+            return Response(csv_data, mimetype="text/csv", headers={"Content-disposition":"attachment; filename=data.csv"})
+    else:
+        return redirect(url_for('login'))
 
 @app.route('/rss/<feedId>', methods=['GET', 'POST'])
 def getRSSspecific(feedId):
@@ -255,6 +273,14 @@ def getRSSspecific(feedId):
                 return getRSSSpecificPage(feedId, data, name, False)
     else:
         redirect(url_for("getLogin"))
+
+@app.route('rss/unsubscribe/<feedId>', methods=['GET'])
+def unsubscribe(feedId):
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        return redirect(url_for("getHome"))
+    else:
+        return redirect(url_for("getLogin"))
 
 def getRSSSpecificPage(feedId, data, name, filter: bool):
     link, title = data.get_RSS_Link_Title(feedId)
