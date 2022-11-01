@@ -210,7 +210,7 @@ def downloadRSS():
         return redirect(url_for('getLogin'))
 
 @app.route('/rss/download/<feedId>', methods=["GET"])
-def downloadRSS(feedId):
+def downloadRSSspecific(feedId):
     ips = [x["ip"] for x in sessions]
     if request.remote_addr in ips:
         data = Data()
@@ -239,7 +239,7 @@ def getRSSspecific(feedId):
 
         if request.method == 'POST':
             if request.form.get('Reload-Button') == "Reload Feed":
-                title, link = data.get_RSS_Link_Title(feedId)
+                title, link, active = data.get_RSS_Link_Title(feedId)
                 api = data.get_api_key()["api_key"]
                 process_news(api)
                 return getRSSSpecificPage(feedId, data, name, False)
@@ -274,23 +274,29 @@ def getRSSspecific(feedId):
     else:
         redirect(url_for("getLogin"))
 
-@app.route('rss/unsubscribe/<feedId>', methods=['GET'])
-def unsubscribe(feedId):
+@app.route('/rss/subscribe/<feedId>', methods=['GET'])
+def subscribe(feedId):
     ips = [x["ip"] for x in sessions]
     if request.remote_addr in ips:
-        return redirect(url_for("getHome"))
+        data = Data()
+        link, title, active = data.get_RSS_Link_Title(feedId)
+        if active == 0:
+            data.update_RSS_active(feedId, 1)
+        else:
+            data.update_RSS_active(feedId, 0)
+        return redirect(url_for("getRSSspecific", feedId=feedId))
     else:
         return redirect(url_for("getLogin"))
 
 def getRSSSpecificPage(feedId, data, name, filter: bool):
-    link, title = data.get_RSS_Link_Title(feedId)
+    link, title, active = data.get_RSS_Link_Title(feedId)
     newsfeed = data.get_RSS_News(link, title)
     keywords = data.get_rss_keywords(feedId)
     tags = data.get_rss_tags(feedId)
     if filter:
         newsfeed = [x for x in newsfeed if determine_send(x["title"], x["tags"], feedId, data)]
     newsfeed = [{"title":x["title"], "tags":x["tags"], "timestamp":datetime.fromtimestamp(float(x["timestamp"])).strftime("%d/%m/%Y, %H:%M:%S"), "name":x["name"], "relevance":x["relevance"]} for x in newsfeed]
-    return render_template('rss-specific.html', newsfeed=newsfeed, name=name, title=title, link=link, id=feedId, keywords=keywords, tags=tags)
+    return render_template('rss-specific.html', newsfeed=newsfeed, name=name, title=title, link=link, id=feedId, keywords=keywords, tags=tags, feedId=feedId, active=active)
 
 @app.route('/settings', methods=['GET', 'POST'])
 def getSettings():

@@ -16,7 +16,7 @@ class Data:
         cur.execute('''CREATE TABLE IF NOT EXISTS Chats(chatId INTEGER, PRIMARY KEY (chatId))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Settings(api_key TEXT, PRIMARY KEY (api_key))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS RSS_News(title TEXT, tags TEXT, timestamp INT, link TEXT, relevance INT)''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Feed(title TEXT, link TEXT, feedId INT, language TEXT, PRIMARY KEY(feedId))''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Feed(title TEXT, link TEXT, feedId INT, language TEXT, active INT, PRIMARY KEY(feedId))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Keyword(feedId INT, keyword TEXT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS RSS_Tag(feedId INT, tag TEXT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Amazon_Product(title TEXT, asin TEXT, PRIMARY KEY(asin))''')
@@ -37,7 +37,22 @@ class Data:
         self.__initRSSId()
         self.__initTippsId()
         self.__initAPIKey()
+        self.__addColumnIfNotExists("active", "RSS_Feed", type="INT", default=1)
         self.last_drop_asin = None
+
+    def __addColumnIfNotExists(self, column, table, type="text", default=""):
+        isExists = False
+        try:
+            cur = self.con.cursor()
+            cur.execute('SELECT ' + column + ' FROM ' + table)
+            cur.close()
+        except sqlite3.OperationalError:
+            print("Adding " + column + " to " + table + "....")
+            cur.close()
+            cur = self.con.cursor()
+            cur.execute('ALTER TABLE ' + table + ' ADD COLUMN ' + column + " " + type + " DEFAULT " + str(default) + ";")
+            cur.close()
+            print("....added")
 
     def __initUser(self):
         cur = self.con.cursor()
@@ -430,10 +445,16 @@ class Data:
 
     def get_RSS_Link_Title(self, id):
         cur = self.con.cursor()
-        cur.execute("SELECT link, title FROM RSS_Feed WHERE feedId=%s;" % id)
+        cur.execute("SELECT link, title, active FROM RSS_Feed WHERE feedId=%s;" % id)
         data = cur.fetchone()
         cur.close()
-        return data[0], data[1]
+        return data[0], data[1], data[2]
+
+    def update_RSS_active(self, id, active):
+        cur = self.con.cursor()
+        cur.execute("UPDATE RSS_Feed SET active=%s WHERE feedId=%s;" % (active, id))
+        self.con.commit()
+        cur.close()
 
     def add_news_tipp(self, foreign_id, type, timestamp):
         self.tippsId = self.tippsId + 1
