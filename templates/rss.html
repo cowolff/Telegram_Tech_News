@@ -136,7 +136,11 @@
                                             <td>{{ feed.numberRelevantNews }}</td>
                                             <td>0%</td>
                                             <td>{{ feed.lastUpdate }}</td>
-                                            <td>True</td>
+                                            {% if (feed.active==0) %}
+                                            <td>No</td>
+                                            {% else %}
+                                            <td>Yes</td>
+                                            {% endif %}
                                         </tr>
                                         {% endfor %}
                                     </tbody>

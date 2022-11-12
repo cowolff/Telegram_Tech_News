@@ -339,5 +339,13 @@ def updatePriority():
     except:
         return "Update failed"
 
+@app.route('/email')
+def getEmailOverview():
+    return render_template('eMail.html')
+
+@app.route('/ML')
+def getMLOverview():
+    return render_template('ML.html')
+
 processManager = ProcessManager(chat_ids)
 processManager.start()

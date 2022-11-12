@@ -30,6 +30,9 @@ class Data:
                     (asin TEXT, PRIMARY KEY(asin))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Issues(id INT, process TEXT, description TEXT, file TEXT, line TEXT, timestamp TEXT, severity INT, done TEXT, PRIMARY KEY(id))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Tipps(id INT, type STRING, foreignKey INT, timestamp INT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS eMailAccount(eMail TEXT, password TEXT, server TEXT, port INT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS Mail(sender TEXT, title TEXT, content TEXT, timestemp TEXT, relevance INT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS MLModel(path TEXT, name TEXT, timestamp TEXT, active TEXT)''')
         self.con.commit()
         cur.close()
         self.__initUser()
@@ -403,7 +406,7 @@ class Data:
         cur = self.con.cursor()
         cur.execute("SELECT * FROM RSS_Feed")
         feeds = cur.fetchall()
-        feeds = [{"title":x[0], "link":x[1], "feedId":x[2], "language":x[3]} for x in feeds]
+        feeds = [{"title":x[0], "link":x[1], "feedId":x[2], "language":x[3], "active":x[4]} for x in feeds]
         cur.close()
         return feeds
 
@@ -493,7 +496,7 @@ class Data:
                 date = datetime.fromtimestamp(float(latest_update)).strftime("%d/%m/%Y, %H:%M:%S")
             except:
                 date = "00.00.0000 00:00"
-            overview.append({"feedId":feed["feedId"], "name":feed["title"], "language":feed["language"], "lastUpdate":date, "numberNews":number_news_total, "numberRelevantNews":number_relevant_news_total, "numberRelevantNewsToday":number_relevant_news})
+            overview.append({"feedId":feed["feedId"], "name":feed["title"], "language":feed["language"], "active":feed["active"], "lastUpdate":date, "numberNews":number_news_total, "numberRelevantNews":number_relevant_news_total, "numberRelevantNewsToday":number_relevant_news})
         return overview
 
     def get_today_news_count(self):
@@ -599,5 +602,12 @@ class Data:
     def update_api_key(self, new_key):
         cur = self.con.cursor()
         cur.execute("UPDATE Settings SET api_key='%s'" % (new_key))
+        self.con.commit()
+        cur.close()
+
+    def update_email_account(self, mail, password, imap_server, port):
+        cur = self.con.cursor()
+        cur.execute('DELETE FROM eMailAccount;')
+        cur.execute("INSERT INTO eMailAccount VALUES('%s', '%s', '%s', %s);" % (mail, password, imap_server, int(port)))
         self.con.commit()
         cur.close()
