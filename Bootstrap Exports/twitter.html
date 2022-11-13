@@ -86,35 +86,25 @@
                     </div>
                 </nav>
                 <div class="container-fluid">
-                    <h3 class="text-dark mb-4">RSS Feeds</h3>
+                    <h3 class="text-dark mb-4">Twitter Interface</h3>
                     <div class="card shadow mb-3">
                         <div class="card-header py-3">
-                            <p class="text-primary m-0 fw-bold">Add new RSS feed</p>
+                            <p class="text-primary m-0 fw-bold">Add new Twitter feed</p>
                         </div>
                         <div class="card-body">
                             <form>
                                 <div class="row">
-                                    <div class="col" style="min-width: 200px;">
-                                        <div class="mb-3"><label class="form-label" for="username"><strong>Link</strong></label><input class="form-control" type="text" id="username" placeholder="example@mail.com" name="username"></div>
-                                    </div>
-                                    <div class="col" style="min-width: 200px;">
-                                        <div class="mb-3"><label class="form-label" for="email"><strong>Title</strong></label><input class="form-control" type="email" id="email" placeholder="RSS Title" name="email"></div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="mb-3"><label class="form-label" for="email"><strong>Language</strong></label>
-                                            <div class="dropdown"><button class="btn btn-primary dropdown-toggle" aria-expanded="false" data-bs-toggle="dropdown" type="button">Language</button>
-                                                <div class="dropdown-menu"><a class="dropdown-item" href="#">English</a><a class="dropdown-item" href="#">German</a><a class="dropdown-item" href="#">Dutch</a></div>
-                                            </div>
-                                        </div>
+                                    <div class="col" style="max-width: 400px;">
+                                        <div class="mb-3"><label class="form-label" for="username"><strong>Twitter handle</strong></label><input class="form-control" type="text" id="username" placeholder="user1234" name="username"></div>
                                     </div>
                                 </div>
-                                <div class="mb-3"><button class="btn btn-primary btn-sm" type="submit" style="padding: 7px;margin-bottom: 0px;">Add RSS Feed</button></div>
+                                <div class="mb-3"><button class="btn btn-primary btn-sm" type="submit" style="padding: 7px;margin-bottom: 0px;">Add Twitter Feed</button></div>
                             </form>
                         </div>
                     </div>
                     <div class="card shadow">
                         <div class="card-header py-3">
-                            <p class="text-primary m-0 fw-bold">RSS Tracking List</p>
+                            <p class="text-primary m-0 fw-bold">Twitter List</p>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -135,8 +125,8 @@
                                     <thead>
                                         <tr>
                                             <th>Name</th>
-                                            <th>Number of total news</th>
-                                            <th>Number of relevant news</th>
+                                            <th>Number of total tweets</th>
+                                            <th>Number of relevant tweets</th>
                                             <th>Acceptance rate</th>
                                             <th>Last update</th>
                                             <th>Active</th>
@@ -146,8 +136,8 @@
                                     <tfoot>
                                         <tr>
                                             <td><strong>Name</strong></td>
-                                            <td><strong>Number of total news</strong></td>
-                                            <td><strong>Number of relevant news</strong></td>
+                                            <td><strong>Number of total tweets</strong></td>
+                                            <td><strong>Number of relevant tweets</strong></td>
                                             <td><strong>Acceptance rate</strong></td>
                                             <td><strong>Last update</strong></td>
                                             <td><strong>Active</strong></td>

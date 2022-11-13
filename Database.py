@@ -611,3 +611,18 @@ class Data:
         cur.execute("INSERT INTO eMailAccount VALUES('%s', '%s', '%s', %s);" % (mail, password, imap_server, int(port)))
         self.con.commit()
         cur.close()
+
+    def get_email_account(self):
+        cur = self.con.cursor()
+        cur.execute("SELECT * FROM eMailAccount")
+        result = cur.fetchall()
+        if len(result) == 0:
+            current_mail = "test@test.de"
+            current_mail_server = "mail.server.de"
+            current_mail_port = 911
+            return current_mail, current_mail_server, current_mail_port
+        else:
+            current_mail = result[0][0]
+            current_mail_server = result[0][1]
+            current_mail_port = result[0][2]
+            return current_mail, current_mail_server, current_mail_port

@@ -5,9 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Dashboard - Brand</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&amp;display=swap">
-    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fontawesome-all.min.css') }}">
+    <link rel="stylesheet" href="assets/fonts/fontawesome-all.min.css">
 </head>
 
 <body id="page-top">
@@ -21,7 +21,10 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('getHome') }}"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('getProcesses') }}"><i class="fas fa-check-circle"></i><span>Processes</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('getAmazonProductList') }}"><i class="fas fa-table"></i><span>Amazon</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('getRSSOverview') }}"><i class="far fa-list-alt"></i><span>Feed</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('getEmailOverview') }}"><i class="fas fa-table"></i><span>eMail News</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('getRSSOverview') }}"><i class="far fa-list-alt"></i><span>RSS Feed</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('getTwitterOverview') }}"><i class="far fa-list-alt"></i><span>Twitter News</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('getMLOverview') }}"><i class="far fa-list-alt"></i><span>Maschine Learning</span></a></li>
                 </ul>
                 <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
             </div>
@@ -73,8 +76,8 @@
                             </li>
                             <div class="d-none d-sm-block topbar-divider"></div>
                             <li class="nav-item dropdown no-arrow">
-                                <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#"><span class="d-none d-lg-inline me-2 text-gray-600 small" id="userName" data-username="{{ username }}">Max Mustermann</span></a>
-                                    <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in"><a class="dropdown-item" href="{{ url_for('getProfile') }}"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a><a class="dropdown-item" href="{{ url_for('getSettings') }}"><i class="fas fa-cogs fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Settings</a>
+                                <div class="nav-item dropdown show no-arrow"><a class="dropdown-toggle nav-link" aria-expanded="true" data-bs-toggle="dropdown" href="#"><span class="d-none d-lg-inline me-2 text-gray-600 small" id="userName" data-username="{{ username }}">Max Mustermann</span></a>
+                                    <div class="dropdown-menu show shadow dropdown-menu-end animated--grow-in" data-bs-popper="none"><a class="dropdown-item" href="{{ url_for('getProfile') }}"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a><a class="dropdown-item" href="{{ url_for('getSettings') }}"><i class="fas fa-cogs fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Settings</a>
                                         <div class="dropdown-divider"></div><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
                                     </div>
                                 </div>
@@ -84,7 +87,7 @@
                 </nav>
                 <div class="container-fluid">
                     <form method="post" action="/rss">
-                        <div class="d-sm-flex justify-content-between align-items-center mb-4">
+                        <div class="d-sm-flex justify-content-between align-items-center mb-4" id="rss_header" data-active="{{ active }}">
                             <h3 class="text-dark mb-0">RSS Feed</h3>
                             <div><a class="btn btn-primary btn-sm d-none d-sm-inline-block" role="button" id="subscribe-button" style="margin-right: 10px;color: var(--bs-gray-100);background: var(--bs-green);border-color: var(--bs-green);" href="{{ url_for('subscribe', feedId=feedId) }}"><i class="far fa-check-square fa-sm text-white-50"></i>&nbsp;Subscribe</a><a class="btn btn-primary btn-sm d-none d-sm-inline-block" role="button" id="unsubscribe-button" style="margin-right: 10px;color: var(--bs-gray-100);background: var(--bs-red);border-color: var(--bs-red);" href="{{ url_for('subscribe', feedId=feedId) }}"><i class="fas fa-times fa-sm text-white-50"></i>&nbsp;Unsubscribe</a><a class="btn btn-primary btn-sm d-none d-sm-inline-block" role="button" href="{{ url_for('downloadRSS', feedId=feedId) }}"><i class="fas fa-download fa-sm text-white-50"></i>&nbsp;Download Data</a></div>
                         </div>
@@ -174,16 +177,6 @@
                                                     <td><strong>Relevance</strong></td>
                                                 </tr>
                                             </tfoot>
-                                            <tbody>
-                                                {% for news in newsfeed %}
-                                                <tr>
-                                                    <td>{{ news.title }}</td>
-                                                    <td>{{ news.timestamp }}</td>
-                                                    <td>{{ news.tags }}</td>
-                                                    <td>{{ news.relevance }}</td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
                                         </table>
                                     </div>
                                     <div class="row">
@@ -215,11 +208,12 @@
             </footer>
         </div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
     </div>
-    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/bs-init.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/rss_list.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/js/chart.min.js"></script>
+    <script src="assets/js/bs-init.js"></script>
+    <script src="assets/js/forwarded_chart.js"></script>
+    <script src="assets/js/rss_list.js"></script>
+    <script src="assets/js/theme.js"></script>
 </body>
 
 </html>

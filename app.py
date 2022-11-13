@@ -315,7 +315,7 @@ def getSettings():
                     return render_template('settings.html', name=userName, api_key=api_key, id=userName)
         return render_template('settings.html', name=userName, api_key=api_key, id=userName)
     else:
-        redirect(url_for("getLogin"))
+        return redirect(url_for("getLogin"))
 
 @app.route('/profile', methods=['GET', 'POST'])
 def getProfile():
@@ -323,7 +323,8 @@ def getProfile():
     if request.remote_addr in ips:
         data = Data()
         if request.method == 'GET':
-            return render_template('profile.html')
+            current_mail, current_mail_server, current_mail_port = data.get_email_account()
+            return render_template('profile.html', current_mail=current_mail, current_mail_server=current_mail_server, current_mail_port=current_mail_port)
 
 @app.route('/api/rss/priority', methods=['POST'])
 def updatePriority():
@@ -341,7 +342,65 @@ def updatePriority():
 
 @app.route('/email')
 def getEmailOverview():
-    return render_template('eMail.html')
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        return render_template('email_overview.html')
+    else:
+        return redirect(url_for("getLogin"))
+
+@app.route('/twitter')
+def getTwitterOverview():
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        return render_template('twitter.html')
+    else:
+        return redirect(url_for("getLogin"))
+
+@app.route('/profile/email', methods=['POST'])
+def updateMailData():
+    print(request.form)
+    if request.form.get('email') == '' or request.form.get('mail_password') == '' or request.form.get('mail_server') == '' or request.form.get('mail_port') == '':
+        return redirect(url_for("getProfile"))
+    else:
+        data = Data()
+        current_mail = request.form.get('email')
+        password_mail = request.form.get('mail_password')
+        mail_server = request.form.get('mail_server')
+        mail_port = request.form.get('mail_port')
+        data.update_email_account(current_mail, password_mail, mail_server, mail_port)
+        return redirect(url_for("getProfile"))
+
+@app.route('/profile/data/rss')
+def getRSSData():
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        return redirect(url_for("getProfile"))
+    else:
+        return redirect(url_for("getLogin"))
+
+@app.route('/profile/data/mail')
+def getMailData():
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        return redirect(url_for("getProfile"))
+    else:
+        return redirect(url_for("getLogin"))
+
+@app.route('/profile/data/price')
+def getPriceData():
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        return redirect(url_for("getProfile"))
+    else:
+        return redirect(url_for("getLogin"))
+
+@app.route('/profile/data/delete')
+def deleteDataset():
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        return redirect(url_for("getProfile"))
+    else:
+        return redirect(url_for("getLogin"))
 
 @app.route('/ML')
 def getMLOverview():

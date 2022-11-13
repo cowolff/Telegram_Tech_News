@@ -99,7 +99,7 @@
                                             <form method="post" action="/profile/email">
                                                 <div class="row">
                                                     <div class="col">
-                                                        <div class="mb-3"><label class="form-label" for="username"><strong>Mail</strong></label><input class="form-control" type="text" id="mail_adress" placeholder="{{ current_mail&nbsp;}}" name="email"></div>
+                                                        <div class="mb-3"><label class="form-label" for="username"><strong>Mail</strong></label><input class="form-control" type="text" id="mail_adress" placeholder="{{ current_mail }}" name="email"></div>
                                                     </div>
                                                     <div class="col">
                                                         <div class="mb-3"><label class="form-label" for="email"><strong>Password</strong></label><input class="form-control" type="password" id="mail_password" placeholder="Password" name="mail_password"></div>
@@ -110,7 +110,7 @@
                                                         <div class="mb-3"><label class="form-label" for="first_name"><strong>IMAP</strong>&nbsp;Server</label><input class="form-control" type="text" id="mail_server" placeholder="{{ current_mail_server }}" name="mail_server"></div>
                                                     </div>
                                                     <div class="col">
-                                                        <div class="mb-3"><label class="form-label" for="last_name"><strong>IMAP</strong>&nbsp;Port</label><input class="form-control" type="number" id="mail_port" placeholder="{{ current_mail_port&nbsp;}}" name="mail_port"></div>
+                                                        <div class="mb-3"><label class="form-label" for="last_name"><strong>IMAP</strong>&nbsp;Port</label><input class="form-control" type="number" id="mail_port" placeholder="{{ current_mail_port }}" name="mail_port"></div>
                                                     </div>
                                                 </div>
                                                 <div class="mb-3"><button class="btn btn-primary btn-sm" id="save_email" type="submit">Save Settings</button></div>
@@ -175,7 +175,7 @@
                                             <form>
                                                 <div class="row">
                                                     <div class="col">
-                                                        <div class="mb-3"><a class="btn btn-primary" role="button" id="download_rss_data" href="{{ url_for('get_RSS_Data') }}">Download RSS Data</a></div>
+                                                        <div class="mb-3"><a class="btn btn-primary" role="button" id="download_rss_data" href="{{ url_for('getRSSData') }}">Download RSS Data</a></div>
                                                     </div>
                                                 </div>
                                                 <div class="row">
