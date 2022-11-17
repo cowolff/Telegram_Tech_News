@@ -159,6 +159,9 @@ def getAmazonTermList():
     else:
         return redirect(url_for('getLogin'))
 
+@app.route('/amazon/add', methods=['POST'])
+def addAmazonASIN():
+    return redirect(url_for("getAmazonTermList"))
 
 # A list of all rss feeds that are beeing tracked, when they were last updated, how many news are stored and how many of them were relevant
 @app.route('/rss',  methods=['GET', 'POST'])
@@ -348,6 +351,11 @@ def getEmailOverview():
     else:
         return redirect(url_for("getLogin"))
 
+
+@app.route('/email/download')
+def downloadEmailNews():
+    return redirect(url_for("getHome"))
+
 @app.route('/twitter')
 def getTwitterOverview():
     ips = [x["ip"] for x in sessions]
@@ -356,9 +364,12 @@ def getTwitterOverview():
     else:
         return redirect(url_for("getLogin"))
 
+@app.route('/twitter/add', methods=['POST'])
+def addTwitterFeed():
+    return redirect(url_for("getHome"))
+
 @app.route('/profile/email', methods=['POST'])
 def updateMailData():
-    print(request.form)
     if request.form.get('email') == '' or request.form.get('mail_password') == '' or request.form.get('mail_server') == '' or request.form.get('mail_port') == '':
         return redirect(url_for("getProfile"))
     else:
@@ -405,6 +416,14 @@ def deleteDataset():
 @app.route('/ML')
 def getMLOverview():
     return render_template('ML.html')
+
+@app.route('/website')
+def getWebsiteChange():
+    return redirect(url_for("getHome"))
+
+@app.route('/website/add')
+def addWebsiteChange():
+    return redirect(url_for("getHome"))
 
 processManager = ProcessManager(chat_ids)
 processManager.start()

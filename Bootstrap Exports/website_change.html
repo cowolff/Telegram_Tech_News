@@ -5,9 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Table - Brand</title>
-    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&amp;display=swap">
-    <link rel="stylesheet" href="assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fontawesome-all.min.css') }}">
 </head>
 
 <body id="page-top">
@@ -87,28 +87,35 @@
                     </div>
                 </nav>
                 <div class="container-fluid">
-                    <h3 class="text-dark mb-4">Amazon</h3>
+                    <h3 class="text-dark mb-4">Website Change</h3>
                     <div class="card shadow mb-3">
                         <div class="card-header py-3">
-                            <p class="text-primary m-0 fw-bold">Add new amazon product</p>
+                            <p class="text-primary m-0 fw-bold">Add new website</p>
                         </div>
                         <div class="card-body">
-                            <form method="post" action="/amazon/add">
-                                <div class="row" style="max-width: 600px;">
+                            <form method="post" action="/website/add">
+                                <div class="row">
                                     <div class="col" style="min-width: 200px;">
-                                        <div class="mb-3"><label class="form-label" for="username"><strong>ASIN</strong></label><input class="form-control" type="text" id="asinInput" placeholder="AH731VD9" name="asinInputField"></div>
+                                        <div class="mb-3"><label class="form-label" for="username"><strong>Link</strong></label><input class="form-control" type="text" id="username" placeholder="example.com" name="username"></div>
                                     </div>
                                     <div class="col" style="min-width: 200px;">
-                                        <div class="mb-3"><label class="form-label" for="email"><strong>Title</strong></label><input class="form-control" type="email" id="email" placeholder="Product Title" name="email"></div>
+                                        <div class="mb-3"><label class="form-label" for="email"><strong>Title</strong></label><input class="form-control" type="email" id="email" placeholder="Website Title" name="email"></div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-3"><label class="form-label" for="email"><strong>Language</strong></label>
+                                            <div class="dropdown" id="languageDropdown"><button class="btn btn-primary dropdown-toggle" aria-expanded="false" data-bs-toggle="dropdown" type="button">Language</button>
+                                                <div class="dropdown-menu"><a class="dropdown-item" href="#">English</a><a class="dropdown-item" href="#">German</a><a class="dropdown-item" href="#">Dutch</a></div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="mb-3"><button class="btn btn-primary btn-sm" id="addRssFeed" type="submit" style="padding: 7px;margin-bottom: 0px;" name="AddRSSFeedButton">Add Amazon Product</button></div>
+                                <div class="mb-3"><button class="btn btn-primary btn-sm" id="addWebsiteButton" type="submit" style="padding: 7px;margin-bottom: 0px;" name="AddWebsiteButton">Add Website</button></div>
                             </form>
                         </div>
                     </div>
                     <div class="card shadow">
                         <div class="card-header py-3">
-                            <p class="text-primary m-0 fw-bold">Amazon Tracking</p>
+                            <p class="text-primary m-0 fw-bold">Website Tracking List</p>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -124,14 +131,14 @@
                                     <div class="text-md-end dataTables_filter" id="dataTable_filter"><label class="form-label"><input type="search" class="form-control form-control-sm" aria-controls="dataTable" placeholder="Search"></label></div>
                                 </div>
                             </div>
-                            <div class="table-responsive table mt-2" id="dataTable" role="grid" aria-describedby="dataTable_info">
-                                <table class="table my-0" id="dataTable">
+                            <div class="table-responsive table mt-2" id="dataTable" role="grid" aria-describedby="dataTable_info" data-feeds="{{ rss_feeds }}">
+                                <table class="table table-striped table-striped-columns table-bordered my-0" id="dataTable">
                                     <thead>
                                         <tr>
                                             <th>Name</th>
-                                            <th>ASIN</th>
-                                            <th>Current Price</th>
-                                            <th>Change</th>
+                                            <th>Number of total news</th>
+                                            <th>Number of relevant news</th>
+                                            <th>Acceptance rate</th>
                                             <th>Last update</th>
                                             <th>Active</th>
                                         </tr>
@@ -140,9 +147,9 @@
                                     <tfoot>
                                         <tr>
                                             <td><strong>Name</strong></td>
-                                            <td><strong>ASIN</strong></td>
-                                            <td><strong>Current Price</strong></td>
-                                            <td><strong>Change</strong></td>
+                                            <td><strong>Number of total news</strong></td>
+                                            <td><strong>Number of relevant news</strong></td>
+                                            <td><strong>Acceptance rate</strong></td>
                                             <td><strong>Last update</strong></td>
                                             <td><strong>Active</strong></td>
                                         </tr>
@@ -176,11 +183,9 @@
             </footer>
         </div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
     </div>
-    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-    <script src="assets/js/bs-init.js"></script>
-    <script src="assets/js/forwarded_chart.js"></script>
-    <script src="assets/js/rss_list.js"></script>
-    <script src="assets/js/theme.js"></script>
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bs-init.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 </body>
 
 </html>

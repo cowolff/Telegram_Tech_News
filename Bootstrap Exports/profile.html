@@ -5,9 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Profile - Brand</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&amp;display=swap">
-    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fontawesome-all.min.css') }}">
+    <link rel="stylesheet" href="assets/fonts/fontawesome-all.min.css">
 </head>
 
 <body id="page-top">
@@ -24,6 +24,7 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('getEmailOverview') }}"><i class="fas fa-table"></i><span>eMail News</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('getRSSOverview') }}"><i class="far fa-list-alt"></i><span>RSS Feed</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('getTwitterOverview') }}"><i class="far fa-list-alt"></i><span>Twitter News</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('getWebsiteChange') }}"><i class="far fa-list-alt"></i><span>Website Change</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('getMLOverview') }}"><i class="far fa-list-alt"></i><span>Maschine Learning</span></a></li>
                 </ul>
                 <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
@@ -76,8 +77,8 @@
                             </li>
                             <div class="d-none d-sm-block topbar-divider"></div>
                             <li class="nav-item dropdown no-arrow">
-                                <div class="nav-item dropdown show no-arrow"><a class="dropdown-toggle nav-link" aria-expanded="true" data-bs-toggle="dropdown" href="#"><span class="d-none d-lg-inline me-2 text-gray-600 small" id="userName" data-username="{{ username }}">Max Mustermann</span></a>
-                                    <div class="dropdown-menu show shadow dropdown-menu-end animated--grow-in" data-bs-popper="none"><a class="dropdown-item" href="{{ url_for('getProfile') }}"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a><a class="dropdown-item" href="{{ url_for('getSettings') }}"><i class="fas fa-cogs fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Settings</a>
+                                <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#"><span class="d-none d-lg-inline me-2 text-gray-600 small" id="userName" data-username="{{ username }}">Max Mustermann</span></a>
+                                    <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in"><a class="dropdown-item" href="{{ url_for('getProfile') }}"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a><a class="dropdown-item" href="{{ url_for('getSettings') }}"><i class="fas fa-cogs fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Settings</a>
                                         <div class="dropdown-divider"></div><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
                                     </div>
                                 </div>
@@ -113,7 +114,7 @@
                                                         <div class="mb-3"><label class="form-label" for="last_name"><strong>IMAP</strong>&nbsp;Port</label><input class="form-control" type="number" id="mail_port" placeholder="{{ current_mail_port&nbsp;}}" name="mail_port"></div>
                                                     </div>
                                                 </div>
-                                                <div class="mb-3"><button class="btn btn-primary btn-sm" id="save_email" type="submit">Save Settings</button></div>
+                                                <div class="mb-3"><button class="btn btn-primary btn-sm" id="save_email" type="submit" name="saveEMailButton">Save Settings</button></div>
                                             </form>
                                         </div>
                                     </div>
@@ -139,7 +140,7 @@
                                                         <div class="mb-3"><label class="form-label" for="last_name"><strong>Confirm New Password</strong></label><input class="form-control" type="password" id="password_new2" name="password_new2"></div>
                                                     </div>
                                                 </div>
-                                                <div class="mb-3"><button class="btn btn-primary btn-sm" id="save_password" type="submit">Save Password</button></div>
+                                                <div class="mb-3"><button class="btn btn-primary btn-sm" id="save_password" type="submit" name="SavePasswordButton">Save Password</button></div>
                                             </form>
                                         </div>
                                     </div>
@@ -151,17 +152,17 @@
                                             <form action="/profile/api" method="post">
                                                 <div class="row">
                                                     <div class="col">
-                                                        <div class="mb-3"><label class="form-label" for="username"><strong>Telegram</strong></label><input class="form-control" type="text" id="telegram_key" placeholder="te1542km1" name="telegram_key"><button class="btn btn-primary btn-sm" id="save_telegram" type="submit" style="margin-top: 10px;">Save Telegram key</button></div>
+                                                        <div class="mb-3"><label class="form-label" for="username"><strong>Telegram</strong></label><input class="form-control" type="text" id="telegram_key" placeholder="te1542km1" name="telegram_key"><button class="btn btn-primary btn-sm" id="save_telegram" type="submit" style="margin-top: 10px;" name="SaveTelegramKeyButton">Save Telegram key</button></div>
                                                     </div>
                                                 </div>
                                                 <div class="row">
                                                     <div class="col">
-                                                        <div class="mb-3"><label class="form-label" for="username"><strong>Signal</strong></label><input class="form-control" type="text" id="signal_key" placeholder="te1542km1" name="signal_key"><button class="btn btn-primary btn-sm" id="save_signal" type="submit" style="margin-top: 10px;">Save Signal key</button></div>
+                                                        <div class="mb-3"><label class="form-label" for="username"><strong>Signal</strong></label><input class="form-control" type="text" id="signal_key" placeholder="te1542km1" name="signal_key"><button class="btn btn-primary btn-sm" id="save_signal" type="submit" style="margin-top: 10px;" name="SaveSignalButton">Save Signal key</button></div>
                                                     </div>
                                                 </div>
                                                 <div class="row">
                                                     <div class="col">
-                                                        <div class="mb-3"><label class="form-label" for="username"><strong>Twitter</strong></label><input class="form-control" type="text" id="twitter_key" placeholder="te1542km1" name="twitter_key"><button class="btn btn-primary btn-sm" id="save_twitter" type="submit" style="margin-top: 10px;">Save Twitter key</button></div>
+                                                        <div class="mb-3"><label class="form-label" for="username"><strong>Twitter</strong></label><input class="form-control" type="text" id="twitter_key" placeholder="te1542km1" name="twitter_key"><button class="btn btn-primary btn-sm" id="save_twitter" type="submit" style="margin-top: 10px;" name="SaveTwitterButton">Save Twitter key</button></div>
                                                     </div>
                                                 </div>
                                             </form>
@@ -175,7 +176,7 @@
                                             <form>
                                                 <div class="row">
                                                     <div class="col">
-                                                        <div class="mb-3"><a class="btn btn-primary" role="button" id="download_rss_data" href="{{ url_for('get_RSS_Data') }}">Download RSS Data</a></div>
+                                                        <div class="mb-3"><a class="btn btn-primary" role="button" id="download_rss_data" href="{{ url_for('getRSSData') }}">Download RSS Data</a></div>
                                                     </div>
                                                 </div>
                                                 <div class="row">
@@ -209,9 +210,11 @@
             </footer>
         </div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
     </div>
-    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/bs-init.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/js/bs-init.js"></script>
+    <script src="assets/js/forwarded_chart.js"></script>
+    <script src="assets/js/rss_list.js"></script>
+    <script src="assets/js/theme.js"></script>
 </body>
 
 </html>
