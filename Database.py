@@ -29,10 +29,13 @@ class Data:
         cur.execute('''CREATE TABLE IF NOT EXISTS Amazon_Watchlist
                     (asin TEXT, PRIMARY KEY(asin))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Issues(id INT, process TEXT, description TEXT, file TEXT, line TEXT, timestamp TEXT, severity INT, done TEXT, PRIMARY KEY(id))''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS Tipps(id INT, type STRING, foreignKey INT, timestamp INT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS Tipps(id INT, type TEXT, foreignKey INT, timestamp INT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS eMailAccount(eMail TEXT, password TEXT, server TEXT, port INT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Mail(sender TEXT, title TEXT, content TEXT, timestemp TEXT, relevance INT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS MLModel(path TEXT, name TEXT, timestamp TEXT, active TEXT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS TwitterSettings(BarerToken TEXT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS TwitterFollow(userName TEXT, id TEXT, active INT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS Tweet(id TEXT, userId TEXT, content TEXT, relevance INT)''')
         self.con.commit()
         cur.close()
         self.__initUser()
@@ -626,3 +629,8 @@ class Data:
             current_mail_server = result[0][1]
             current_mail_port = result[0][2]
             return current_mail, current_mail_server, current_mail_port
+
+    def update_twitter_api(self, barer_token):
+        cur = self.con.cursor()
+        cur.execute('DELETE * FROM TwitterSettings;')
+        cur.execute(f"INSERT INTO TwitterSettings VALUES({})")
