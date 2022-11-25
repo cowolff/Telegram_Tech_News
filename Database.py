@@ -34,8 +34,9 @@ class Data:
         cur.execute('''CREATE TABLE IF NOT EXISTS Mail(sender TEXT, title TEXT, content TEXT, timestemp TEXT, relevance INT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS MLModel(path TEXT, name TEXT, timestamp TEXT, active TEXT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS TwitterSettings(BarerToken TEXT)''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS TwitterFollow(userName TEXT, id TEXT, active INT)''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS Tweet(id TEXT, userId TEXT, content TEXT, relevance INT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS TwitterFollow(userName TEXT, id TEXT, active INT, PRIMARY KEY(id))''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS Tweet(id TEXT, userId TEXT, content TEXT, relevance INT, PRIMARY KEY(id))''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS Twitter_Keyword(feedId TEXT, keyword TEXT)''')
         self.con.commit()
         cur.close()
         self.__initUser()
@@ -632,5 +633,63 @@ class Data:
 
     def update_twitter_api(self, barer_token):
         cur = self.con.cursor()
-        cur.execute('DELETE * FROM TwitterSettings;')
-        cur.execute(f"INSERT INTO TwitterSettings VALUES({})")
+        cur.execute('DELETE FROM TwitterSettings;')
+        cur.execute(f"INSERT INTO TwitterSettings VALUES('{barer_token}')")
+        self.con.commit()
+        cur.close()
+
+    def get_twitter_api(self):
+        cur = self.con.cursor()
+        cur.execute("SELECT * FROM TwitterSettings;")
+        try:
+            result = cur.fetchone()[0]
+            return result
+        except TypeError:
+            return None
+
+    def add_twitter_feed(self, username):
+        barer = self.get_twitter_api()
+        if barer is not None:
+            url = f"https://api.twitter.com/2/users/by/username/{username}"
+            headers = {"Authorization": "Bearer {}".format(barer)}
+            response = requests.request("GET", url, headers = headers).json()
+            id = response["data"]["id"]
+            cur = self.con.cursor()
+            cur.execute(f"INSERT INTO TwitterFollow VALUES('{username}', '{id}', 1)")
+            self.con.commit()
+            cur.close()
+
+    def get_twitter_feeds(self, check_active=False):
+        cur = self.con.cursor()
+        if check_active:
+            cur.execute("SELECT * FROM TwitterFollow WHERE active=1")
+            feeds = cur.fetchall()
+        else:
+            cur.execute("SELECT * FROM TwitterFollow")
+            feeds = cur.fetchall()
+        result = [{"username":x[0], "id":x[1], "active":x[2]} for x in feeds]
+        return result
+
+    def add_tweet(self, id, userId, content, relevance=0):
+        cur = self.con.cursor()
+        try:
+            cur.execute(f"INSERT INTO Tweet VALUES('{id}', '{userId}', '{content}', {relevance})")
+            self.con.commit()
+            cur.close()
+            return True
+        except:
+            cur.close()
+            return False
+
+    def add_twitter_keyword(self, feedId, keyword):
+        cur = self.con.cursor()
+        cur.execute(f"INSERT INTO Twitter_Keyword VALUES('{feedId}', '{keyword}')")
+        self.con.commit()
+        cur.close()
+
+    def get_twitter_keywords(self, feedId):
+        cur = self.con.cursor()
+        cur.execute(f"SELECT keyword FROM Twitter_Keyword WHERE feedId='{feedId}';")
+        keywords = cur.fetchall()
+        keywords = [{"Keyword":x[0]} for x in keywords]
+        return keywords
