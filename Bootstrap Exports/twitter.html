@@ -144,6 +144,21 @@
                                             <td><strong>Active</strong></td>
                                         </tr>
                                     </tfoot>
+                                    <tbody>
+                                        {% for feed in feeds %}
+                                        <tr>
+                                            <td>
+                                                <a href={{ url_for('getTwitterSpecific', twitterId=feed.id) }}>{{ feed.username
+                                                    }}</a>
+                                            </td>
+                                            <td>{{ feed.numberTweets }}</td>
+                                            <td>{{ feed.numberRelevantTweets }}</td>
+                                            <td>{{ feed.acceptanceRate }}</td>
+                                            <td>{{ feed.lastUpdate }}</td>
+                                            <td>{{ feed.active }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
                                 </table>
                             </div>
                             <div class="row">

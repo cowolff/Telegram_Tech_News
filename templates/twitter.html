@@ -24,6 +24,7 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('getEmailOverview') }}"><i class="fas fa-table"></i><span>eMail News</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('getRSSOverview') }}"><i class="far fa-list-alt"></i><span>RSS Feed</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('getTwitterOverview') }}"><i class="far fa-list-alt"></i><span>Twitter News</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('getWebsiteChange') }}"><i class="far fa-list-alt"></i><span>Website Change</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('getMLOverview') }}"><i class="far fa-list-alt"></i><span>Maschine Learning</span></a></li>
                 </ul>
                 <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
@@ -92,13 +93,13 @@
                             <p class="text-primary m-0 fw-bold">Add new Twitter feed</p>
                         </div>
                         <div class="card-body">
-                            <form>
+                            <form method="post" action="/twitter/add">
                                 <div class="row">
                                     <div class="col" style="max-width: 400px;">
                                         <div class="mb-3"><label class="form-label" for="username"><strong>Twitter handle</strong></label><input class="form-control" type="text" id="username" placeholder="user1234" name="username"></div>
                                     </div>
                                 </div>
-                                <div class="mb-3"><button class="btn btn-primary btn-sm" type="submit" style="padding: 7px;margin-bottom: 0px;">Add Twitter Feed</button></div>
+                                <div class="mb-3"><button class="btn btn-primary btn-sm" id="addTwitterFeed" type="submit" style="padding: 7px;margin-bottom: 0px;" name="TwitterAddButton" value="AddFeed">Add Twitter Feed</button></div>
                             </form>
                         </div>
                     </div>
@@ -147,12 +148,11 @@
                                         {% for feed in feeds %}
                                         <tr>
                                             <td>
-                                                <a href={{ url_for('getRSSspecific', feedId=feed.feedId) }}>{{ feed.name
-                                                    }}</button>
+                                                <a href={{ url_for('getTwitterSpecific', twitterId=feed.id) }}>{{ feed.username
+                                                    }}</a>
                                             </td>
                                             <td>{{ feed.numberTweets }}</td>
                                             <td>{{ feed.numberRelevantTweets }}</td>
-                                            <td>{{ feed.numberRelevantTweetsToday }}</td>
                                             <td>{{ feed.acceptanceRate }}</td>
                                             <td>{{ feed.lastUpdate }}</td>
                                             <td>{{ feed.active }}</td>
@@ -190,7 +190,6 @@
     </div>
     <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bs-init.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/rss_loader.js') }}"></script>
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 </body>
 

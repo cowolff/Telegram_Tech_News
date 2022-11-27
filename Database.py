@@ -35,7 +35,7 @@ class Data:
         cur.execute('''CREATE TABLE IF NOT EXISTS MLModel(path TEXT, name TEXT, timestamp TEXT, active TEXT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS TwitterSettings(BarerToken TEXT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS TwitterFollow(userName TEXT, id TEXT, active INT, PRIMARY KEY(id))''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS Tweet(id TEXT, userId TEXT, content TEXT, relevance INT, PRIMARY KEY(id))''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS Tweet(id TEXT, userId TEXT, content TEXT, relevance INT, timestamp TEXT, PRIMARY KEY(id))''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Twitter_Keyword(feedId TEXT, keyword TEXT)''')
         self.con.commit()
         cur.close()
@@ -643,8 +643,10 @@ class Data:
         cur.execute("SELECT * FROM TwitterSettings;")
         try:
             result = cur.fetchone()[0]
+            cur.close()
             return result
         except TypeError:
+            cur.close()
             return None
 
     def add_twitter_feed(self, username):
@@ -667,19 +669,68 @@ class Data:
         else:
             cur.execute("SELECT * FROM TwitterFollow")
             feeds = cur.fetchall()
-        result = [{"username":x[0], "id":x[1], "active":x[2]} for x in feeds]
+        result = []
+        for feed in feeds:
+            cur.execute(f"SELECT Count(*) FROM Tweet WHERE userId='{feed[1]}'")
+            total_number = cur.fetchone()[0]
+            cur.execute(f"SELECT Count(*) FROM Tweet WHERE userId='{feed[1]}' AND relevance=1")
+            relevant_number = cur.fetchone()[0]
+            cur.execute(f"SELECT Count(*) FROM Tweet WHERE userId='{feed[1]}' AND relevance=2")
+            accepted_number = cur.fetchone()[0]
+            if accepted_number == 0:
+                acceptance_rate = 0
+            else:
+                acceptance_rate = relevant_number / cur.fetchone()[0]
+            cur.execute(f"SELECT * FROM Tweet WHERE userId='{feed[1]}'")
+            tweets = cur.fetchall()
+            if len(tweets) == 0:
+                latest_update = 0
+            else:
+
+                latest_update = max([float(x[4]) for x in tweets])
+            result.append({"username":feed[0], "id":feed[1], "active":feed[2], "numberTweets":total_number, "numberRelevantTweets":relevant_number, "acceptanceRate":acceptance_rate, "lastUpdate":datetime.fromtimestamp(float(latest_update)).strftime("%d/%m/%Y, %H:%M:%S")})
+        cur.close()
         return result
+
+    def change_twitter_feed_active(self, id, active):
+        cur = self.con.cursor()
+        cur.execute(f"UPDATE TwitterFollow SET active={active} WHERE id='{id}'")
+        self.con.commit()
+        cur.close()
+
+    def remove_twitter_feed(self, id):
+        self.remove_tweets(userId=id)
+        cur = self.con.cursor()
+        cur.execute(f"DELETE FROM TwitterFollow WHERE id='{id}'")
+        self.con.commit()
+        cur.close()
+
+    def remove_tweets(self, userId):
+        cur = self.con.cursor()
+        cur.execute(f"DELETE FROM Tweet WHERE userId='{userId}'")
+        self.con.commit()
+        cur.close()
 
     def add_tweet(self, id, userId, content, relevance=0):
         cur = self.con.cursor()
         try:
-            cur.execute(f"INSERT INTO Tweet VALUES('{id}', '{userId}', '{content}', {relevance})")
+            timestamp = str(time.time())
+            cur.execute(f"INSERT INTO Tweet VALUES('{id}', '{userId}', '{content}', {relevance}, '{timestamp}')")
             self.con.commit()
             cur.close()
             return True
         except:
+            self.con.commit()
             cur.close()
             return False
+
+    def get_tweets(self):
+        cur = self.con.cursor()
+        cur.execute("SELECT * FROM Tweet")
+        tweets = cur.fetchall()
+        result = [{"id":x[0], "userId":x[1], "content":x[2], "relevance":x[3]} for x in tweets]
+        cur.close()
+        return result
 
     def add_twitter_keyword(self, feedId, keyword):
         cur = self.con.cursor()
@@ -692,4 +743,5 @@ class Data:
         cur.execute(f"SELECT keyword FROM Twitter_Keyword WHERE feedId='{feedId}';")
         keywords = cur.fetchall()
         keywords = [{"Keyword":x[0]} for x in keywords]
+        cur.close()
         return keywords

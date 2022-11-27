@@ -360,13 +360,35 @@ def downloadEmailNews():
 def getTwitterOverview():
     ips = [x["ip"] for x in sessions]
     if request.remote_addr in ips:
-        return render_template('twitter.html')
+        data = Data()
+        feeds = data.get_twitter_feeds()
+        return render_template('twitter.html', feeds=feeds)
     else:
         return redirect(url_for("getLogin"))
 
+@app.route('/twitter/<twitterId>', methods=['GET'])
+def getTwitterSpecific(twitterId):
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        data = Data()
+        return redirect(url_for("getTwitterOverview"))
+    else:
+        return redirect(url_for("getLogin"))
+        
+
 @app.route('/twitter/add', methods=['POST'])
 def addTwitterFeed():
-    return redirect(url_for("getHome"))
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        data = Data()
+        if request.method == 'POST':
+            print(request.form)
+            if request.form.get('TwitterAddButton') == "AddFeed":
+                twitter_handle = request.form.get('username')
+                if twitter_handle != "":
+                    data.add_twitter_feed(twitter_handle)
+                    return redirect(url_for("getTwitterOverview"))
+    return redirect(url_for("getTwitterOverview"))
 
 @app.route('/profile/email', methods=['POST'])
 def updateMailData():
@@ -425,5 +447,7 @@ def getWebsiteChange():
 def addWebsiteChange():
     return redirect(url_for("getHome"))
 
+# data.update_twitter_api("AAAAAAAAAAAAAAAAAAAAABXDjgEAAAAA9WPmKl6dcZ17e%2BKhjVjIGYDiUT0%3DlgwetRF78spSTSk0eE61GbclDuENjuKuAo1igVT5VEyDHZv0NK")
+# data.add_twitter_feed("CorniWo")
 processManager = ProcessManager(chat_ids)
 processManager.start()
