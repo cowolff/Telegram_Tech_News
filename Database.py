@@ -34,9 +34,10 @@ class Data:
         cur.execute('''CREATE TABLE IF NOT EXISTS Mail(sender TEXT, title TEXT, content TEXT, timestemp TEXT, relevance INT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS MLModel(path TEXT, name TEXT, timestamp TEXT, active TEXT)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS TwitterSettings(BarerToken TEXT)''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS TwitterFollow(userName TEXT, id TEXT, active INT, PRIMARY KEY(id))''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS Tweet(id TEXT, userId TEXT, content TEXT, relevance INT, timestamp TEXT, PRIMARY KEY(id))''')
-        cur.execute('''CREATE TABLE IF NOT EXISTS Twitter_Keyword(feedId TEXT, keyword TEXT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS TwitterFollow(userName TEXT, id TEXT, active INT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS Tweet(id TEXT, userId TEXT, content TEXT, relevance INT, timestamp INT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS TelegramSettings(token TEXT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS SignalSettings(token TEXT)''')
         self.con.commit()
         cur.close()
         self.__initUser()
@@ -634,114 +635,97 @@ class Data:
     def update_twitter_api(self, barer_token):
         cur = self.con.cursor()
         cur.execute('DELETE FROM TwitterSettings;')
-        cur.execute(f"INSERT INTO TwitterSettings VALUES('{barer_token}')")
+        cur.execute(f"INSERT INTO TwitterSettings VALUES('{barer_token}');")
         self.con.commit()
         cur.close()
 
-    def get_twitter_api(self):
+    def get_twitter_baerer(self):
         cur = self.con.cursor()
-        cur.execute("SELECT * FROM TwitterSettings;")
-        try:
-            result = cur.fetchone()[0]
-            cur.close()
-            return result
-        except TypeError:
-            cur.close()
+        cur.execute("SELECT * FROM TwitterSettings")
+        result = cur.fetchall()
+        if len(result) == 0:
             return None
-
-    def add_twitter_feed(self, username):
-        barer = self.get_twitter_api()
-        if barer is not None:
-            url = f"https://api.twitter.com/2/users/by/username/{username}"
-            headers = {"Authorization": "Bearer {}".format(barer)}
-            response = requests.request("GET", url, headers = headers).json()
-            id = response["data"]["id"]
-            cur = self.con.cursor()
-            cur.execute(f"INSERT INTO TwitterFollow VALUES('{username}', '{id}', 1)")
-            self.con.commit()
-            cur.close()
-
-    def get_twitter_feeds(self, check_active=False):
-        cur = self.con.cursor()
-        if check_active:
-            cur.execute("SELECT * FROM TwitterFollow WHERE active=1")
-            feeds = cur.fetchall()
         else:
-            cur.execute("SELECT * FROM TwitterFollow")
-            feeds = cur.fetchall()
-        result = []
-        for feed in feeds:
-            cur.execute(f"SELECT Count(*) FROM Tweet WHERE userId='{feed[1]}'")
-            total_number = cur.fetchone()[0]
-            cur.execute(f"SELECT Count(*) FROM Tweet WHERE userId='{feed[1]}' AND relevance=1")
-            relevant_number = cur.fetchone()[0]
-            cur.execute(f"SELECT Count(*) FROM Tweet WHERE userId='{feed[1]}' AND relevance=2")
-            accepted_number = cur.fetchone()[0]
-            if accepted_number == 0:
-                acceptance_rate = 0
-            else:
-                acceptance_rate = relevant_number / cur.fetchone()[0]
-            cur.execute(f"SELECT * FROM Tweet WHERE userId='{feed[1]}'")
-            tweets = cur.fetchall()
-            if len(tweets) == 0:
-                latest_update = 0
-            else:
+            return result[0][0]
+    
+    def add_tweet(self, id, userId, content, timestamp, relevance=0):
+        cur = self.con.cursor()
+        cur.execute(f"INSERT INTO Tweet VALUES('{id}', '{userId}', '{content}', {relevance}, {timestamp});")
+        self.con.commit()
+        cur.close()
 
-                latest_update = max([float(x[4]) for x in tweets])
-            result.append({"username":feed[0], "id":feed[1], "active":feed[2], "numberTweets":total_number, "numberRelevantTweets":relevant_number, "acceptanceRate":acceptance_rate, "lastUpdate":datetime.fromtimestamp(float(latest_update)).strftime("%d/%m/%Y, %H:%M:%S")})
+    def add_twitter_feed(self, name, id, active=1):
+        cur = self.con.cursor()
+        cur.execute(f"INSERT INTO TwitterFollow VALUES('{name}', '{id}', {active});")
+        self.con.commit()
+        cur.close()
+    
+    def get_tweets(self, userId):
+        cur = self.con.cursor()
+        cur.execute(f"SELECT * FROM Tweet WHERE userId='{userId}';")
+        result = cur.fetchall()
+        result = [{"id":x[0], "userId":x[1], "content":x[2], "relevance":x[3]} for x in result]
+        cur.close()
+        return result
+    
+    def get_twitter_feeds(self):
+        cur = self.con.cursor()
+        cur.execute(f"SELECT * FROM TwitterFollow;")
+        result = cur.fetchall()
+        result = [{"name":x[0], "id":x[1], "active":x[2]} for x in result]
         cur.close()
         return result
 
-    def change_twitter_feed_active(self, id, active):
+    def get_twitter_overview(self):
+        result = self.get_twitter_feeds()
         cur = self.con.cursor()
-        cur.execute(f"UPDATE TwitterFollow SET active={active} WHERE id='{id}'")
+        data = []
+        for feed in result:
+            cur.execute(f"SELECT Count(*) FROM Tweet WHERE userId='{feed['id']}';")
+            count = cur.fetchone()[0]
+            cur.execute(f"SELECT Count(*) FROM Tweet WHERE userId='{feed['id']}' AND relevance=1;")
+            count_relevant = cur.fetchone()[0]
+            cur.execute(f"SELECT Max(timestamp) FROM Tweet WHERE userId='{feed['id']}';")
+            last_update = cur.fetchone()[0]
+            last_update = str(datetime.fromtimestamp(last_update))
+            cur.execute(f"SELECT Count(*) FROM Tweet WHERE userId='{feed['id']}' AND relevance=2;")
+            count_accepted = cur.fetchone()[0]
+            if count_relevant == 0:
+                acceptance = 0
+            else:
+                acceptance = count_accepted / count_relevant
+            data.append({"name":feed["name"], "feedId":feed["id"], "numberTweets":count, "numberRelevantTweets":count_relevant, "acceptanceRate":acceptance, "lastUpdate":last_update, "active":feed["active"]})
+        cur.close()
+        return data
+    
+    def update_telegram_token(self, key):
+        cur = self.con.cursor()
+        cur.execute("DELETE FROM TelegramSettings;")
+        cur.execute(f"INSERT INTO TelegramSettings VALUES('{key}');")
         self.con.commit()
         cur.close()
 
-    def remove_twitter_feed(self, id):
-        self.remove_tweets(userId=id)
+    def get_telegram_token(self):
         cur = self.con.cursor()
-        cur.execute(f"DELETE FROM TwitterFollow WHERE id='{id}'")
+        cur.execute("SELECT * FROM TelegramSettings")
+        result = cur.fetchall()
+        if len(result) == 0:
+            return None
+        else:
+            return result[0][0]
+
+    def update_signal_token(self, key):
+        cur = self.con.cursor()
+        cur.execute("DELETE FROM SignalSettings;")
+        cur.execute(f"INSERT INTO SignalSettings VALUES('{key}');")
         self.con.commit()
         cur.close()
 
-    def remove_tweets(self, userId):
+    def get_signal_token(self):
         cur = self.con.cursor()
-        cur.execute(f"DELETE FROM Tweet WHERE userId='{userId}'")
-        self.con.commit()
-        cur.close()
-
-    def add_tweet(self, id, userId, content, relevance=0):
-        cur = self.con.cursor()
-        try:
-            timestamp = str(time.time())
-            cur.execute(f"INSERT INTO Tweet VALUES('{id}', '{userId}', '{content}', {relevance}, '{timestamp}')")
-            self.con.commit()
-            cur.close()
-            return True
-        except:
-            self.con.commit()
-            cur.close()
-            return False
-
-    def get_tweets(self):
-        cur = self.con.cursor()
-        cur.execute("SELECT * FROM Tweet")
-        tweets = cur.fetchall()
-        result = [{"id":x[0], "userId":x[1], "content":x[2], "relevance":x[3]} for x in tweets]
-        cur.close()
-        return result
-
-    def add_twitter_keyword(self, feedId, keyword):
-        cur = self.con.cursor()
-        cur.execute(f"INSERT INTO Twitter_Keyword VALUES('{feedId}', '{keyword}')")
-        self.con.commit()
-        cur.close()
-
-    def get_twitter_keywords(self, feedId):
-        cur = self.con.cursor()
-        cur.execute(f"SELECT keyword FROM Twitter_Keyword WHERE feedId='{feedId}';")
-        keywords = cur.fetchall()
-        keywords = [{"Keyword":x[0]} for x in keywords]
-        cur.close()
-        return keywords
+        cur.execute("SELECT * FROM SignalSettings")
+        result = cur.fetchall()
+        if len(result) == 0:
+            return None
+        else:
+            return result[0][0]

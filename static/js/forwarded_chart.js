@@ -45,6 +45,8 @@ document.addEventListener('DOMContentLoaded', function(){
   // var dates = convertToDate(labels);
   ctx.data.datasets = data;
   ctx.data.labels = dates.reverse();
+  console.log(labels);
+  console.log(dates);
   ctx.update();
 
   var share = document.getElementById("newsAcceptanceRate").dataset.acceptance;

@@ -5,9 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Profile - Brand</title>
-    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&amp;display=swap">
-    <link rel="stylesheet" href="assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fontawesome-all.min.css') }}">
 </head>
 
 <body id="page-top">
@@ -149,23 +149,27 @@
                                             <p class="text-primary m-0 fw-bold">Change API keys</p>
                                         </div>
                                         <div class="card-body">
-                                            <form action="/profile/api" method="post">
-                                                <div class="row">
-                                                    <div class="col">
+                                            <div class="row">
+                                                <div class="col">
+                                                    <form method="post" action="/profile/data/update/telegram">
                                                         <div class="mb-3"><label class="form-label" for="username"><strong>Telegram</strong></label><input class="form-control" type="text" id="telegram_key" placeholder="te1542km1" name="telegram_key"><button class="btn btn-primary btn-sm" id="save_telegram" type="submit" style="margin-top: 10px;" name="SaveTelegramKeyButton">Save Telegram key</button></div>
-                                                    </div>
+                                                    </form>
                                                 </div>
-                                                <div class="row">
-                                                    <div class="col">
+                                            </div>
+                                            <div class="row">
+                                                <div class="col">
+                                                    <form method="post" action="/profile/data/update/signal">
                                                         <div class="mb-3"><label class="form-label" for="username"><strong>Signal</strong></label><input class="form-control" type="text" id="signal_key" placeholder="te1542km1" name="signal_key"><button class="btn btn-primary btn-sm" id="save_signal" type="submit" style="margin-top: 10px;" name="SaveSignalButton">Save Signal key</button></div>
-                                                    </div>
+                                                    </form>
                                                 </div>
-                                                <div class="row">
-                                                    <div class="col">
+                                            </div>
+                                            <div class="row">
+                                                <div class="col">
+                                                    <form method="post" action="/profile/data/update/twitter">
                                                         <div class="mb-3"><label class="form-label" for="username"><strong>Twitter</strong></label><input class="form-control" type="text" id="twitter_key" placeholder="te1542km1" name="twitter_key"><button class="btn btn-primary btn-sm" id="save_twitter" type="submit" style="margin-top: 10px;" name="SaveTwitterButton">Save Twitter key</button></div>
-                                                    </div>
+                                                    </form>
                                                 </div>
-                                            </form>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="card shadow mb-3">
@@ -210,11 +214,9 @@
             </footer>
         </div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
     </div>
-    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-    <script src="assets/js/bs-init.js"></script>
-    <script src="assets/js/forwarded_chart.js"></script>
-    <script src="assets/js/rss_list.js"></script>
-    <script src="assets/js/theme.js"></script>
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bs-init.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 </body>
 
 </html>

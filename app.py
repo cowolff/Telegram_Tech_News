@@ -13,6 +13,7 @@ import time
 from ProcessManager import ProcessManager
 from RSS_Feed import process_news, determine_send
 from datetime import datetime
+from twitter import get_initial_data
 import csv
 
 chat_ids = ["653734838"]    # List of chat ids which want to be updated
@@ -100,13 +101,13 @@ def getProcesses():
     if request.remote_addr in ips:
         name = sessions[ips.index(request.remote_addr)]["username"]
         processes = [{"name":"Amazon Crawler", "lastChange":"16.12.2021 12:01", "lastError":"13.12.2021 12:30", "running":True}, {"name":"Telegram Bot", "lastChange":"22.12.2021 12:01", "lastError":"14.12.2021 12:30", "running":False}]
-        return render_template("processList.html", processes=processes, name=name)
+        return render_template("processes.html", processes=processes, name=name)
     else:
         return redirect(url_for('getLogin'))
 
 
 # A list of all individual products which are specificly tracked
-@app.route('/amazon/products', methods=['GET', 'POST'])
+@app.route('/amazon/', methods=['GET', 'POST'])
 def getAmazonProductList():
     ips = [x["ip"] for x in sessions]
     if request.remote_addr in ips:
@@ -115,7 +116,7 @@ def getAmazonProductList():
         # products = [{"name":"Galaxy M21", "asin":"DGXT5RR", "price":"200.45€", "lastUpdate":"13.12.2021", "change":"+7%"}, {"name":"Galaxy S20 FE", "asin":"DEUU5RR", "price":"421.45€", "lastUpdate":"13.12.2021", "change":"+3%"}]
         if request.method == 'GET':
             products = data.get_overview_products()
-            return render_template("amazon-products-overview.html", products=products, name=name)
+            return render_template("amazon.html", products=products, name=name)
         if request.method == 'POST':
             if request.form.get('AsinAddButton') == "Add":
                 asin = request.form['asinTextInput']
@@ -127,10 +128,10 @@ def getAmazonProductList():
                 data.add_amazon_product(term, asin)
                 data.add_amazon_watchlist(asin)
                 products = data.get_overview_products()
-                return render_template("amazon-products-overview.html", products=products, name=name)
+                return render_template("amazon.html", products=products, name=name)
             if request.form.get('Reload-Button') == "Reload":
                 products = data.get_overview_products()
-                return render_template("amazon-products-overview.html", products=products, name=name)
+                return render_template("amazon.html", products=products, name=name)
     else:
         return redirect(url_for('getLogin'))
 
@@ -361,8 +362,20 @@ def getTwitterOverview():
     ips = [x["ip"] for x in sessions]
     if request.remote_addr in ips:
         data = Data()
-        feeds = data.get_twitter_feeds()
+        feeds = data.get_twitter_overview()
         return render_template('twitter.html', feeds=feeds)
+    else:
+        return redirect(url_for("getLogin"))
+
+@app.route('/twitter/<feedId>')
+def getTwitterSpecific(feedId):
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        return redirect(url_for("getTwitterOverview"))
+        # keywords_list, blacklist_list, tweet_list, tweetList, tweetNumbers, tweetLabels, tweetsGatheredToday, numberTweets, handle
+        # data = Data()
+        # feed = data.get_twitter_specific(feedId)
+        # return render_template('twitter-specific.html', feed=feed)
     else:
         return redirect(url_for("getLogin"))
 
@@ -380,15 +393,27 @@ def getTwitterSpecific(twitterId):
 def addTwitterFeed():
     ips = [x["ip"] for x in sessions]
     if request.remote_addr in ips:
-        data = Data()
-        if request.method == 'POST':
-            print(request.form)
-            if request.form.get('TwitterAddButton') == "AddFeed":
-                twitter_handle = request.form.get('username')
-                if twitter_handle != "":
-                    data.add_twitter_feed(twitter_handle)
-                    return redirect(url_for("getTwitterOverview"))
-    return redirect(url_for("getTwitterOverview"))
+        if request.form.get('username') != "":
+            data = Data()
+            twitter = request.form.get('username')
+            get_initial_data(twitter)
+            return redirect(url_for("getTwitterOverview"))
+        else:
+            return redirect(url_for("getTwitterOverview"))
+    else:
+        return redirect(url_for("getLogin"))
+
+@app.route('/twitter/download/<feedId>', methods=['POST'])
+def downloadFeed():
+    pass
+
+@app.route('/twitter/unfollow/<feedId>', methods=['POST'])
+def unfollow(feedId):
+    pass
+
+@app.route('/twitter/follow/<feedId>', methods=['POST'])
+def follow(feedId):
+    pass
 
 @app.route('/profile/email', methods=['POST'])
 def updateMailData():
@@ -402,6 +427,48 @@ def updateMailData():
         mail_port = request.form.get('mail_port')
         data.update_email_account(current_mail, password_mail, mail_server, mail_port)
         return redirect(url_for("getProfile"))
+
+@app.route('/profile/data/update/telegram', methods=['POST'])
+def updateTelegramData():
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        data = Data()
+        if request.form.get('telegram_key') == "":
+            return redirect(url_for("getProfile"))
+        else:
+            telegram = request.form.get('telegram_key')
+            data.update_telegram_token(telegram)
+            return redirect(url_for("getProfile"))
+    else:
+        return redirect(url_for("getLogin"))
+
+@app.route('/profile/data/update/signal', methods=['POST'])
+def updateSignalData():
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        data = Data()
+        if request.form.get('signal_key') == "":
+            return redirect(url_for("getProfile"))
+        else:
+            signal = request.form.get('signal_key')
+            data.update_signal_api(signal)
+            return redirect(url_for("getProfile"))
+    else:
+        return redirect(url_for("getLogin"))
+
+@app.route('/profile/data/update/twitter', methods=['POST'])
+def updateTwitterData():
+    ips = [x["ip"] for x in sessions]
+    if request.remote_addr in ips:
+        data = Data()
+        if request.form.get('twitter_key') == "":
+            return redirect(url_for("getProfile"))
+        else:
+            twitter = request.form.get('twitter_key')
+            data.update_twitter_api(twitter)
+            return redirect(url_for("getProfile"))
+    else:
+        return redirect(url_for("getLogin"))
 
 @app.route('/profile/data/rss')
 def getRSSData():
@@ -441,13 +508,12 @@ def getMLOverview():
 
 @app.route('/website')
 def getWebsiteChange():
-    return redirect(url_for("getHome"))
+    return render_template('website-change.html')
 
 @app.route('/website/add')
 def addWebsiteChange():
-    return redirect(url_for("getHome"))
+    return redirect(url_for("getWebsiteChange"))
 
-# data.update_twitter_api("AAAAAAAAAAAAAAAAAAAAABXDjgEAAAAA9WPmKl6dcZ17e%2BKhjVjIGYDiUT0%3DlgwetRF78spSTSk0eE61GbclDuENjuKuAo1igVT5VEyDHZv0NK")
-# data.add_twitter_feed("CorniWo")
+
 processManager = ProcessManager(chat_ids)
 processManager.start()
